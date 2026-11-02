@@ -1,8 +1,12 @@
 from django import forms
 
-from .models import Categoria, MedidaProducto, Producto
-
-
+from .models import (
+    Categoria,
+    Material,
+    MedidaProducto,
+    MovimientoInventario,
+    Producto,
+)
 class ProductoForm(forms.ModelForm):
     class Meta:
         model = Producto
@@ -122,3 +126,44 @@ class CategoriaForm(forms.ModelForm):
             "descripcion",
             "activo",
         ]
+class MaterialForm(forms.ModelForm):
+    class Meta:
+        model = Material
+        fields = [
+            "codigo",
+            "nombre",
+            "unidad_medida",
+            "stock_minimo",
+            "costo_referencia",
+            "activo",
+        ]
+
+    def clean_codigo(self):
+        return self.cleaned_data["codigo"].strip().upper()
+
+
+class MovimientoMaterialForm(forms.Form):
+    material = forms.ModelChoiceField(
+        queryset=Material.objects.filter(activo=True),
+        label="Material",
+    )
+
+    tipo = forms.ChoiceField(
+        choices=MovimientoInventario.TIPOS,
+        label="Tipo de movimiento",
+    )
+
+    cantidad = forms.DecimalField(
+        min_value=0.01,
+        decimal_places=2,
+        max_digits=12,
+    )
+
+    motivo = forms.CharField(
+        max_length=200,
+    )
+
+    referencia = forms.CharField(
+        max_length=100,
+        required=False,
+    )

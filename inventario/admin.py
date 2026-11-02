@@ -1,7 +1,12 @@
 from django.contrib import admin
 
-from .models import Categoria, MedidaProducto, Producto
-
+from .models import (
+    Categoria,
+    Material,
+    MedidaProducto,
+    MovimientoInventario,
+    Producto,
+)
 
 @admin.register(Categoria)
 class CategoriaAdmin(admin.ModelAdmin):
@@ -54,4 +59,36 @@ class MedidaProductoAdmin(admin.ModelAdmin):
     search_fields = (
         "producto__codigo",
         "producto__nombre",
+    )
+@admin.register(Material)
+class MaterialAdmin(admin.ModelAdmin):
+    list_display = (
+        "codigo",
+        "nombre",
+        "unidad_medida",
+        "stock",
+        "stock_minimo",
+        "activo",
+    )
+
+    search_fields = (
+        "codigo",
+        "nombre",
+    )
+
+
+@admin.register(MovimientoInventario)
+class MovimientoInventarioAdmin(admin.ModelAdmin):
+    list_display = (
+        "fecha",
+        "material",
+        "tipo",
+        "cantidad",
+        "stock_anterior",
+        "stock_resultante",
+    )
+
+    list_filter = (
+        "tipo",
+        "fecha",
     )

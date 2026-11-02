@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <h2>Materiales</h2>
+        <p>Control de materias primas e insumos.</p>
+    </div>
+
+    <div>
+        <a class="btn"
+           href="{% url 'inventario:movimiento_historial' %}">
+            Historial
+        </a>
+
+        <a class="btn"
+           href="{% url 'inventario:movimiento_crear' %}">
+            + Movimiento
+        </a>
+
+        <a class="btn btn-primary"
+           href="{% url 'inventario:material_crear' %}">
+            + Material
+        </a>
+    </div>
+</div>
+
+<form method="get" class="search-form">
+    <input
+        name="q"
+        value="{{ busqueda }}"
+        placeholder="Buscar material">
+
+    <button class="btn">
+        Buscar
+    </button>
+</form>
+
+<div class="card">
+
+<table>
+<thead>
+<tr>
+    <th>Código</th>
+    <th>Material</th>
+    <th>Unidad</th>
+    <th>Stock</th>
+    <th>Stock mínimo</th>
+    <th>Estado</th>
+    <th></th>
+</tr>
+</thead>
+
+<tbody>
+
+{% for material in materiales %}
+
+<tr>
+    <td>{{ material.codigo }}</td>
+    <td>{{ material.nombre }}</td>
+
+    <td>
+        {{ material.get_unidad_medida_display }}
+    </td>
+
+    <td>
+        {% if material.stock_bajo %}
+        <span class="stock-bajo">
+            {{ material.stock }}
+        </span>
+        {% else %}
+            {{ material.stock }}
+        {% endif %}
+    </td>
+
+    <td>{{ material.stock_minimo }}</td>
+
+    <td>
+        {% if material.activo %}
+            <span class="badge activo">Activo</span>
+        {% else %}
+            <span class="badge inactivo">
+                Inactivo
+            </span>
+        {% endif %}
+    </td>
+
+    <td>
+        <a href="{% url 'inventario:material_editar' material.pk %}">
+            Editar
+        </a>
+    </td>
+</tr>
+
+{% empty %}
+
+<tr>
+<td colspan="7" class="empty">
+    No existen materiales registrados.
+</td>
+</tr>
+
+{% endfor %}
+
+</tbody>
+</table>
+
+</div>
+
+{% endblock %}

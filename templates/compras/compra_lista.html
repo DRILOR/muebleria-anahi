@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="page-header">
+
+<div>
+<h2>Compras</h2>
+<p>Historial de compras de materiales.</p>
+</div>
+
+<a class="btn btn-primary"
+href="{% url 'compras:compra_crear' %}">
++ Nueva compra
+</a>
+
+</div>
+
+<div class="card">
+
+<table>
+
+<tr>
+<th>Fecha</th>
+<th>Proveedor</th>
+<th>Documento</th>
+<th>Total</th>
+</tr>
+
+{% for compra in compras %}
+
+<tr>
+<td>
+{{ compra.fecha|date:"d/m/Y H:i" }}
+</td>
+
+<td>
+{{ compra.proveedor.nombre }}
+</td>
+
+<td>
+{{ compra.numero_documento }}
+</td>
+
+<td>
+Bs {{ compra.total }}
+</td>
+
+</tr>
+
+{% empty %}
+
+<tr>
+<td colspan="4">
+No existen compras.
+</td>
+</tr>
+
+{% endfor %}
+
+</table>
+
+</div>
+
+{% endblock %}

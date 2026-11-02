@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="page-header">
+<div>
+<h2>Proveedores</h2>
+<p>Administración de proveedores.</p>
+</div>
+
+<a class="btn btn-primary"
+   href="{% url 'compras:proveedor_crear' %}">
++ Proveedor
+</a>
+</div>
+
+<div class="card">
+
+<table>
+
+<tr>
+<th>Nombre</th>
+<th>NIT</th>
+<th>Teléfono</th>
+<th>Estado</th>
+<th></th>
+</tr>
+
+{% for proveedor in proveedores %}
+
+<tr>
+<td>{{ proveedor.nombre }}</td>
+<td>{{ proveedor.nit }}</td>
+<td>{{ proveedor.telefono }}</td>
+<td>
+{% if proveedor.activo %}
+Activo
+{% else %}
+Inactivo
+{% endif %}
+</td>
+
+<td>
+<a href="{% url 'compras:proveedor_editar' proveedor.pk %}">
+Editar
+</a>
+</td>
+</tr>
+
+{% endfor %}
+
+</table>
+
+</div>
+
+{% endblock %}

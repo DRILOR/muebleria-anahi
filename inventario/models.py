@@ -1,6 +1,6 @@
 from django.core.validators import MinValueValidator
 from django.db import models
-
+from django.conf import settings
 
 class Categoria(models.Model):
     nombre = models.CharField(
@@ -126,3 +126,146 @@ class MedidaProducto(models.Model):
 
     def __str__(self):
         return f"Medidas de {self.producto.nombre}"
+class Material(models.Model):
+    UNIDAD = "UNIDAD"
+    TABLON = "TABLON"
+    METRO = "METRO"
+    METRO_CUADRADO = "M2"
+    KILOGRAMO = "KG"
+    LITRO = "LITRO"
+
+    UNIDADES = [
+        (UNIDAD, "Unidad"),
+        (TABLON, "Tablón"),
+        (METRO, "Metro"),
+        (METRO_CUADRADO, "Metro cuadrado"),
+        (KILOGRAMO, "Kilogramo"),
+        (LITRO, "Litro"),
+    ]
+
+    codigo = models.CharField(
+        max_length=30,
+        unique=True,
+        verbose_name="Código",
+    )
+
+    nombre = models.CharField(
+        max_length=150,
+        verbose_name="Material",
+    )
+
+    unidad_medida = models.CharField(
+        max_length=20,
+        choices=UNIDADES,
+        default=UNIDAD,
+        verbose_name="Unidad de medida",
+    )
+
+    stock = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0,
+        validators=[MinValueValidator(0)],
+        verbose_name="Stock actual",
+    )
+
+    stock_minimo = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0,
+        validators=[MinValueValidator(0)],
+        verbose_name="Stock mínimo",
+    )
+
+    costo_referencia = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=0,
+        validators=[MinValueValidator(0)],
+        verbose_name="Costo de referencia",
+    )
+
+    activo = models.BooleanField(
+        default=True,
+        verbose_name="Activo",
+    )
+
+    creado_en = models.DateTimeField(auto_now_add=True)
+    actualizado_en = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["nombre"]
+        verbose_name = "Material"
+        verbose_name_plural = "Materiales"
+
+    def __str__(self):
+        return f"{self.codigo} - {self.nombre}"
+
+    @property
+    def stock_bajo(self):
+        return self.stock <= self.stock_minimo
+
+
+class MovimientoInventario(models.Model):
+    ENTRADA = "ENTRADA"
+    SALIDA = "SALIDA"
+
+    TIPOS = [
+        (ENTRADA, "Entrada"),
+        (SALIDA, "Salida"),
+    ]
+
+    material = models.ForeignKey(
+        Material,
+        on_delete=models.PROTECT,
+        related_name="movimientos",
+    )
+
+    tipo = models.CharField(
+        max_length=10,
+        choices=TIPOS,
+    )
+
+    cantidad = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        validators=[MinValueValidator(0.01)],
+    )
+
+    stock_anterior = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+    )
+
+    stock_resultante = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+    )
+
+    motivo = models.CharField(
+        max_length=200,
+    )
+
+    referencia = models.CharField(
+        max_length=100,
+        blank=True,
+    )
+
+    creado_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+
+    fecha = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    class Meta:
+        ordering = ["-fecha"]
+        verbose_name = "Movimiento de inventario"
+        verbose_name_plural = "Movimientos de inventario"
+
+    def __str__(self):
+        return f"{self.tipo} - {self.material} - {self.cantidad}"

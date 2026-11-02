@@ -5,7 +5,11 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from .forms import MedidaProductoForm, ProductoForm
 from .models import Producto
+from django.core.exceptions import ValidationError
 
+from .forms import MaterialForm, MovimientoMaterialForm
+from .models import Material, MovimientoInventario
+from .services import registrar_movimiento
 
 @login_required
 def producto_lista(request):
@@ -153,5 +157,162 @@ def producto_eliminar(request, pk):
         "inventario/producto_confirmar_eliminar.html",
         {
             "producto": producto,
+        },
+    )
+@login_required
+def material_lista(request):
+    materiales = Material.objects.all()
+
+    q = request.GET.get("q", "").strip()
+
+    if q:
+        materiales = materiales.filter(
+            Q(codigo__icontains=q)
+            | Q(nombre__icontains=q)
+        )
+
+    return render(
+        request,
+        "inventario/material_lista.html",
+        {
+            "materiales": materiales,
+            "busqueda": q,
+        },
+    )
+
+
+@login_required
+def material_crear(request):
+    if request.method == "POST":
+        form = MaterialForm(request.POST)
+
+        if form.is_valid():
+            form.save()
+
+            messages.success(
+                request,
+                "Material registrado correctamente.",
+            )
+
+            return redirect(
+                "inventario:material_lista"
+            )
+    else:
+        form = MaterialForm()
+
+    return render(
+        request,
+        "inventario/material_form.html",
+        {
+            "form": form,
+            "titulo": "Registrar material",
+        },
+    )
+
+
+@login_required
+def material_editar(request, pk):
+    material = get_object_or_404(
+        Material,
+        pk=pk,
+    )
+
+    if request.method == "POST":
+        form = MaterialForm(
+            request.POST,
+            instance=material,
+        )
+
+        if form.is_valid():
+            form.save()
+
+            messages.success(
+                request,
+                "Material actualizado correctamente.",
+            )
+
+            return redirect(
+                "inventario:material_lista"
+            )
+
+    else:
+        form = MaterialForm(
+            instance=material,
+        )
+
+    return render(
+        request,
+        "inventario/material_form.html",
+        {
+            "form": form,
+            "titulo": "Editar material",
+        },
+    )
+
+
+@login_required
+def movimiento_crear(request):
+    if request.method == "POST":
+        form = MovimientoMaterialForm(request.POST)
+
+        if form.is_valid():
+            try:
+                registrar_movimiento(
+                    material_id=form.cleaned_data[
+                        "material"
+                    ].pk,
+                    tipo=form.cleaned_data["tipo"],
+                    cantidad=form.cleaned_data[
+                        "cantidad"
+                    ],
+                    motivo=form.cleaned_data[
+                        "motivo"
+                    ],
+                    referencia=form.cleaned_data[
+                        "referencia"
+                    ],
+                    usuario=request.user,
+                )
+
+                messages.success(
+                    request,
+                    "Movimiento registrado correctamente.",
+                )
+
+                return redirect(
+                    "inventario:material_lista"
+                )
+
+            except ValidationError as error:
+                form.add_error(
+                    None,
+                    error.message,
+                )
+    else:
+        form = MovimientoMaterialForm()
+
+    return render(
+        request,
+        "inventario/movimiento_form.html",
+        {"form": form},
+    )
+
+
+@login_required
+def movimiento_historial(request):
+    movimientos = (
+        MovimientoInventario.objects
+        .select_related(
+            "material",
+            "creado_por",
+        )
+        .all()
+    )
+
+    return render(
+        request,
+        "inventario/movimiento_historial.html",
+        {
+            "movimientos": movimientos,
         },
     )

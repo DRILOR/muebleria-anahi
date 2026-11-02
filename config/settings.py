@@ -85,9 +85,14 @@ DATABASES = {
             "charset": "utf8mb4",
             "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
         },
+        "TEST": {
+            "NAME": os.getenv(
+                "DB_TEST_NAME",
+                "muebleria_anahi_test",
+            ),
+        },
     }
 }
-
 
 # Validación de contraseñas
 AUTH_PASSWORD_VALIDATORS = [

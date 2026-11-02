@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>{{ titulo }}</h2>
+
+<form method="post"
+      class="card form-card">
+
+{% csrf_token %}
+
+{{ form.as_p }}
+
+<div class="form-actions">
+
+<a class="btn"
+href="{% url 'compras:proveedor_lista' %}">
+Cancelar
+</a>
+
+<button class="btn btn-primary">
+Guardar
+</button>
+
+</div>
+
+</form>
+
+{% endblock %}

@@ -1,0 +1,15 @@
+[run]
+source =
+    inventario
+    compras
+
+omit =
+    */migrations/*
+    */admin.py
+    */apps.py
+    */tests.py
+
+[report]
+show_missing = True
+skip_covered = True
+fail_under = 80

@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>Registrar compra</h2>
+
+<form method="post"
+      class="card">
+
+{% csrf_token %}
+
+<h3>Datos de compra</h3>
+
+{{ form.as_p }}
+
+<h3>Materiales</h3>
+
+{{ formset.management_form }}
+
+{% for detalle in formset %}
+
+<div class="card"
+     style="margin-bottom:15px">
+
+{{ detalle.as_p }}
+
+</div>
+
+{% endfor %}
+
+<div class="form-actions">
+
+<a class="btn"
+href="{% url 'compras:compra_lista' %}">
+Cancelar
+</a>
+
+<button class="btn btn-primary">
+Registrar compra
+</button>
+
+</div>
+
+</form>
+
+{% endblock %}
