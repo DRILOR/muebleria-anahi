@@ -1,4 +1,4 @@
-﻿from pathlib import Path
+from pathlib import Path
 import os
 
 from dotenv import load_dotenv
@@ -32,8 +32,11 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-]
 
+    # Aplicaciones del proyecto
+    "inventario",
+    "compras",
+]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -109,14 +112,18 @@ LANGUAGE_CODE = "es"
 TIME_ZONE = "America/La_Paz"
 
 USE_I18N = True
+
 USE_TZ = True
 
 
 # Archivos estáticos
 STATIC_URL = "static/"
+
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
+
 STATIC_ROOT = BASE_DIR / "staticfiles"
-
-
 # Archivos cargados
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"

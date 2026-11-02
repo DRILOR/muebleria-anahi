@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}
+Desactivar producto
+{% endblock %}
+
+{% block content %}
+
+<div class="card confirmation-card">
+
+    <h2>Desactivar producto</h2>
+
+    <p>
+        ¿Está seguro de que desea desactivar
+        <strong>{{ producto.nombre }}</strong>?
+    </p>
+
+    <p>
+        El producto permanecerá registrado
+        para conservar su historial.
+    </p>
+
+    <form method="post">
+
+        {% csrf_token %}
+
+        <a class="btn"
+           href="{% url 'inventario:producto_lista' %}">
+            Cancelar
+        </a>
+
+        <button
+            type="submit"
+            class="btn btn-danger">
+            Confirmar
+        </button>
+
+    </form>
+
+</div>
+
+{% endblock %}
