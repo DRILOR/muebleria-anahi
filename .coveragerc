@@ -2,6 +2,9 @@
 source =
     inventario
     compras
+    ventas
+    reportes
+    anahibot
 
 omit =
     */migrations/*

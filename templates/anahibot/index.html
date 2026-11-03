@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+AnahíBot | Mueblería Anahí
+{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <h2>AnahíBot</h2>
+        <p>
+            Asistente conversacional conectado a los datos reales de la
+            mueblería.
+        </p>
+    </div>
+
+    <span class="badge badge-neutral">Datos en vivo</span>
+</div>
+
+<section class="chat-shell card" aria-label="Chat de AnahíBot">
+    <div id="chat-mensajes"
+         class="chat-mensajes"
+         role="log"
+         aria-live="polite">
+        <div class="chat-message bot">
+            <span class="chat-author">AnahíBot</span>
+            <div class="chat-bubble">
+                ¡Hola! Soy AnahíBot. Consulto inventario, precios,
+                proveedores y ventas directamente de la base de datos.
+                No invento datos: si un registro no existe te lo digo y
+                si un valor está en cero también.
+            </div>
+        </div>
+    </div>
+
+    <div id="chat-sugerencias" class="chat-sugerencias">
+        {% for sugerencia in sugerencias %}
+            <button type="button"
+                    class="chat-chip"
+                    data-sugerencia="{{ sugerencia }}">
+                {{ sugerencia }}
+            </button>
+        {% endfor %}
+    </div>
+
+    <form id="chat-form"
+          class="chat-form"
+          data-url="{% url 'anahibot:responder' %}"
+          autocomplete="off">
+        {% csrf_token %}
+
+        <label class="chat-label" for="chat-input">
+            Escribe tu consulta
+        </label>
+
+        <div class="chat-input-row">
+            <textarea id="chat-input"
+                      name="mensaje"
+                      rows="1"
+                      maxlength="500"
+                      placeholder="Ej.: ¿Qué productos tienen stock bajo?"
+                      required></textarea>
+
+            <button type="submit"
+                    class="btn btn-primary"
+                    id="chat-enviar">
+                Enviar
+            </button>
+        </div>
+    </form>
+
+    <p class="chat-note">
+        AnahíBot responde solo con información registrada en el sistema.
+        Las consultas de ventas y proveedores requieren permisos de
+        administración.
+    </p>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/anahibot.js' %}" defer></script>
+{% endblock %}

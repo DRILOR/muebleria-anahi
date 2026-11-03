@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     "compras",
     "ventas",
     "reportes",
+    "anahibot",
 ]
 
 MIDDLEWARE = [
