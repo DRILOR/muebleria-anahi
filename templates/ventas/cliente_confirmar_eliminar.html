@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}
+Desactivar cliente | Mueblería Anahí
+{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <h2>Desactivar cliente</h2>
+        <p>Esta acción es una eliminación lógica.</p>
+    </div>
+</div>
+
+<div class="card confirmation-card">
+    <p>
+        ¿Deseas desactivar al cliente
+        <strong>{{ cliente.nombre }}</strong>?
+    </p>
+
+    <p class="muted-text">
+        El cliente dejará de aparecer en el registro de ventas, pero su
+        historial y sus comprobantes se conservarán intactos.
+    </p>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="form-actions">
+            <a class="btn"
+               href="{% url 'ventas:cliente_lista' %}">
+                Cancelar
+            </a>
+            <button class="btn btn-danger"
+                    type="submit">
+                Sí, desactivar
+            </button>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

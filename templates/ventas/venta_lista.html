@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+
+{% block title %}
+Ventas | Mueblería Anahí
+{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <h2>Ventas</h2>
+        <p>Historial de ventas, comprobantes e ingresos registrados.</p>
+    </div>
+
+    <a class="btn btn-primary"
+       href="{% url 'ventas:venta_crear' %}">
+        + Nueva venta
+    </a>
+</div>
+
+<div class="stats-grid stats-grid-2">
+    <div class="stat-card">
+        <span class="stat-label">Ventas completadas</span>
+        <strong class="stat-value">{{ resumen.cantidad }}</strong>
+        <small>Según los filtros aplicados</small>
+    </div>
+
+    <div class="stat-card stat-card-accent">
+        <span class="stat-label">Ingresos del periodo</span>
+        <strong class="stat-value">
+            Bs {{ resumen.total|floatformat:2 }}
+        </strong>
+        <small>Ventas completadas, sin anuladas</small>
+    </div>
+</div>
+
+<form method="get"
+      class="filters-card filters-wrap">
+
+    <div class="filter-field filter-grow">
+        <label for="q">Buscar</label>
+        <input
+            id="q"
+            type="search"
+            name="q"
+            value="{{ busqueda }}"
+            placeholder="Número, cliente o NIT">
+    </div>
+
+    <div class="filter-field">
+        <label for="desde">Desde</label>
+        <input id="desde"
+               type="date"
+               name="desde"
+               value="{{ desde }}">
+    </div>
+
+    <div class="filter-field">
+        <label for="hasta">Hasta</label>
+        <input id="hasta"
+               type="date"
+               name="hasta"
+               value="{{ hasta }}">
+    </div>
+
+    <div class="filter-field">
+        <label for="estado">Estado</label>
+        <select id="estado" name="estado">
+            <option value="">Todos</option>
+            <option value="COMPLETADA"
+                    {% if estado == "COMPLETADA" %}selected{% endif %}>
+                Completadas
+            </option>
+            <option value="ANULADA"
+                    {% if estado == "ANULADA" %}selected{% endif %}>
+                Anuladas
+            </option>
+        </select>
+    </div>
+
+    <div class="filter-actions">
+        <button class="btn btn-primary"
+                type="submit">
+            Filtrar
+        </button>
+        <a class="btn"
+           href="{% url 'ventas:venta_lista' %}">
+            Limpiar
+        </a>
+    </div>
+
+</form>
+
+{% if error_fechas %}
+    <div class="form-alert">
+        {{ error_fechas }}
+    </div>
+{% endif %}
+
+<div class="card table-card">
+
+    <table>
+        <thead>
+            <tr>
+                <th>Comprobante</th>
+                <th>Fecha</th>
+                <th>Cliente</th>
+                <th>Productos</th>
+                <th>Total</th>
+                <th>Pago</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for venta in page_obj %}
+                <tr>
+                    <td>
+                        <a class="table-link"
+                           href="{% url 'ventas:venta_detalle' venta.pk %}">
+                            <strong>{{ venta.numero }}</strong>
+                        </a>
+                    </td>
+                    <td>{{ venta.fecha|date:"d/m/Y H:i" }}</td>
+                    <td>
+                        <a class="table-link"
+                           href="{% url 'ventas:cliente_detalle' venta.cliente.pk %}">
+                            {{ venta.cliente.nombre }}
+                        </a>
+                    </td>
+                    <td>{{ venta.detalles.all|length }}</td>
+                    <td class="money">Bs {{ venta.total|floatformat:2 }}</td>
+                    <td>
+                        {% if venta.ingreso %}
+                            {{ venta.ingreso.get_metodo_pago_display }}
+                        {% else %}
+                            <span class="muted-text">Sin registro</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if venta.esta_anulada %}
+                            <span class="badge inactivo">Anulada</span>
+                        {% else %}
+                            <span class="badge activo">Completada</span>
+                        {% endif %}
+                    </td>
+                    <td class="actions">
+                        <a href="{% url 'ventas:venta_detalle' venta.pk %}">
+                            Ver
+                        </a>
+                        <a href="{% url 'ventas:venta_comprobante' venta.pk %}">
+                            Comprobante
+                        </a>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="8"
+                        class="empty">
+                        No se encontraron ventas con los filtros seleccionados.
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</div>
+
+{% include "partials/paginacion.html" %}
+
+{% endblock %}

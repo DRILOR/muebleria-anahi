@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+Comprobante {{ venta.numero }} | Mueblería Anahí
+{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet"
+          href="{% static 'css/comprobante.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<div class="comprobante-actions no-print">
+    <a class="btn"
+       href="{% url 'ventas:venta_detalle' venta.pk %}">
+        Volver a la venta
+    </a>
+    <a class="btn btn-primary"
+       href="{% url 'ventas:venta_comprobante_pdf' venta.pk %}">
+        Descargar PDF
+    </a>
+    <button class="btn"
+            type="button"
+            onclick="window.print()">
+        Imprimir
+    </button>
+</div>
+
+<article class="comprobante-sheet">
+    <header class="comprobante-header">
+        <div>
+            <h1>MUEBLERÍA ANAHÍ</h1>
+            <p>Carpintería y muebles a medida</p>
+            <small>Yacuiba, Bolivia</small>
+        </div>
+        <div class="comprobante-id">
+            <span>Comprobante de venta</span>
+            <strong>{{ venta.numero }}</strong>
+            <small>{{ venta.fecha|date:"d/m/Y H:i" }}</small>
+        </div>
+    </header>
+
+    {% if venta.esta_anulada %}
+        <div class="comprobante-anulada">VENTA ANULADA</div>
+    {% endif %}
+
+    <section class="comprobante-cliente">
+        <div>
+            <span>Cliente</span>
+            <strong>{{ venta.cliente.nombre }}</strong>
+        </div>
+        <div>
+            <span>NIT / Documento</span>
+            <strong>{{ venta.cliente.nit|default:"Sin registro" }}</strong>
+        </div>
+        <div>
+            <span>Teléfono</span>
+            <strong>{{ venta.cliente.telefono|default:"Sin registro" }}</strong>
+        </div>
+        <div>
+            <span>Atendido por</span>
+            <strong>
+                {% if venta.creado_por %}
+                    {{ venta.creado_por.get_username }}
+                {% else %}
+                    Sistema
+                {% endif %}
+            </strong>
+        </div>
+    </section>
+
+    <table class="comprobante-tabla">
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th class="center">Cantidad</th>
+                <th class="right">Precio unitario</th>
+                <th class="right">Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for detalle in venta.detalles.all %}
+                <tr>
+                    <td>
+                        {{ detalle.producto.codigo }} -
+                        {{ detalle.producto.nombre }}
+                    </td>
+                    <td class="center">{{ detalle.cantidad }}</td>
+                    <td class="right">
+                        Bs {{ detalle.precio_unitario|floatformat:2 }}
+                    </td>
+                    <td class="right">
+                        Bs {{ detalle.subtotal|floatformat:2 }}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="comprobante-totales">
+        <div>
+            <span>Método de pago</span>
+            <strong>
+                {% if venta.ingreso %}
+                    {{ venta.ingreso.get_metodo_pago_display }}
+                {% else %}
+                    Sin registro
+                {% endif %}
+            </strong>
+        </div>
+        <div class="comprobante-total">
+            <span>Total</span>
+            <strong>Bs {{ venta.total|floatformat:2 }}</strong>
+        </div>
+    </div>
+
+    {% if venta.observaciones %}
+        <section class="comprobante-observaciones">
+            <span>Observaciones</span>
+            <p>{{ venta.observaciones }}</p>
+        </section>
+    {% endif %}
+
+    <footer class="comprobante-footer">
+        <p>Gracias por confiar en Mueblería Anahí.</p>
+        <small>Este comprobante respalda su compra.</small>
+    </footer>
+</article>
+
+{% endblock %}

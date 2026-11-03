@@ -1,0 +1,239 @@
+.comprobante-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.comprobante-sheet {
+    width: min(820px, 100%);
+    margin: 0 auto;
+    background: #ffffff;
+    border: 1px solid #ded6cd;
+    border-radius: 14px;
+    padding: 38px;
+    box-shadow: 0 10px 30px rgba(73, 48, 31, .08);
+}
+
+.comprobante-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 25px;
+    padding-bottom: 22px;
+    border-bottom: 3px solid #69452d;
+}
+
+.comprobante-header h1 {
+    margin: 0;
+    color: #49301f;
+    letter-spacing: .5px;
+}
+
+.comprobante-header p {
+    margin: 6px 0 2px;
+    color: #69452d;
+    font-weight: 600;
+}
+
+.comprobante-header small {
+    color: #756b64;
+}
+
+.comprobante-id {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.comprobante-id span {
+    color: #756b64;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .8px;
+}
+
+.comprobante-id strong {
+    font-size: 22px;
+    color: #49301f;
+}
+
+.comprobante-id small {
+    color: #756b64;
+}
+
+.comprobante-anulada {
+    margin-top: 18px;
+    padding: 10px;
+    text-align: center;
+    font-weight: 700;
+    color: #a63d40;
+    background: #fbeaea;
+    border: 1px solid #efc9ca;
+    border-radius: 8px;
+    letter-spacing: 1px;
+}
+
+.comprobante-cliente {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px 22px;
+    margin: 24px 0;
+    padding: 18px;
+    background: #f6f1ea;
+    border-radius: 10px;
+}
+
+.comprobante-cliente div {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.comprobante-cliente span {
+    font-size: 11px;
+    color: #756b64;
+    text-transform: uppercase;
+    letter-spacing: .6px;
+}
+
+.comprobante-cliente strong {
+    color: #302a26;
+    font-size: 14px;
+}
+
+.comprobante-tabla {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.comprobante-tabla th {
+    background: #69452d;
+    color: #ffffff;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+}
+
+.comprobante-tabla th,
+.comprobante-tabla td {
+    padding: 11px 10px;
+    border-bottom: 1px solid #e7dfd7;
+}
+
+.comprobante-tabla tbody tr:nth-child(even) {
+    background: #faf7f3;
+}
+
+.comprobante-tabla .center {
+    text-align: center;
+}
+
+.comprobante-tabla .right {
+    text-align: right;
+}
+
+.comprobante-totales {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 25px;
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px solid #ded6cd;
+}
+
+.comprobante-totales > div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.comprobante-totales span {
+    font-size: 11px;
+    color: #756b64;
+    text-transform: uppercase;
+}
+
+.comprobante-total {
+    text-align: right;
+}
+
+.comprobante-total strong {
+    font-size: 26px;
+    color: #49301f;
+}
+
+.comprobante-observaciones {
+    margin-top: 22px;
+    padding: 15px;
+    background: #f6f1ea;
+    border-radius: 8px;
+}
+
+.comprobante-observaciones span {
+    font-size: 11px;
+    color: #756b64;
+    text-transform: uppercase;
+}
+
+.comprobante-observaciones p {
+    margin: 6px 0 0;
+}
+
+.comprobante-footer {
+    margin-top: 34px;
+    text-align: center;
+    color: #756b64;
+}
+
+.comprobante-footer p {
+    margin: 0 0 3px;
+    color: #69452d;
+    font-weight: 600;
+}
+
+@media (max-width: 700px) {
+    .comprobante-sheet {
+        padding: 22px;
+    }
+
+    .comprobante-header,
+    .comprobante-totales {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .comprobante-id,
+    .comprobante-total {
+        text-align: left;
+    }
+
+    .comprobante-cliente {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media print {
+    .no-print,
+    .topbar {
+        display: none !important;
+    }
+
+    body {
+        background: #ffffff;
+    }
+
+    .container {
+        width: 100%;
+        margin: 0;
+    }
+
+    .comprobante-sheet {
+        box-shadow: none;
+        border: 0;
+        width: 100%;
+        padding: 0;
+    }
+}

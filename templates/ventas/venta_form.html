@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+Nueva venta | Mueblería Anahí
+{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <h2>Registrar venta</h2>
+        <p>
+            Los precios se toman del catálogo y el stock se descuenta
+            automáticamente.
+        </p>
+    </div>
+
+    <a class="btn"
+       href="{% url 'ventas:venta_lista' %}">
+        Volver al historial
+    </a>
+</div>
+
+{% if form.non_field_errors or formset.non_form_errors %}
+    <div class="form-alert">
+        {{ form.non_field_errors }}
+        {{ formset.non_form_errors }}
+    </div>
+{% endif %}
+
+<form method="post"
+      id="venta-form"
+      class="card form-card form-card-wide">
+
+    {% csrf_token %}
+
+    <div class="form-section-title">
+        <h3>Datos de la venta</h3>
+        <p>Selecciona al cliente y la forma de pago.</p>
+    </div>
+
+    <div class="form-grid form-grid-2">
+        <div class="form-group">
+            <label for="{{ form.cliente.id_for_label }}">
+                {{ form.cliente.label }} *
+            </label>
+            {{ form.cliente }}
+            {% for error in form.cliente.errors %}
+                <small class="field-error">{{ error }}</small>
+            {% endfor %}
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.metodo_pago.id_for_label }}">
+                {{ form.metodo_pago.label }} *
+            </label>
+            {{ form.metodo_pago }}
+            {% for error in form.metodo_pago.errors %}
+                <small class="field-error">{{ error }}</small>
+            {% endfor %}
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.referencia_pago.id_for_label }}">
+                {{ form.referencia_pago.label }}
+            </label>
+            {{ form.referencia_pago }}
+            {% for error in form.referencia_pago.errors %}
+                <small class="field-error">{{ error }}</small>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="form-section-title products-title">
+        <div>
+            <h3>Productos</h3>
+            <p>Agrega una o más líneas. Solo se muestran productos con stock.</p>
+        </div>
+
+        <button class="btn btn-small"
+                type="button"
+                id="add-line">
+            + Agregar producto
+        </button>
+    </div>
+
+    {{ formset.management_form }}
+
+    <div class="sale-lines-wrap">
+        <table class="sale-lines">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Stock</th>
+                    <th>Cantidad</th>
+                    <th>Precio unitario</th>
+                    <th>Subtotal</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="sale-lines-body">
+                {% for detalle in formset %}
+                    <tr class="sale-row">
+                        <td>
+                            {{ detalle.producto }}
+                            {% for error in detalle.producto.errors %}
+                                <small class="field-error">{{ error }}</small>
+                            {% endfor %}
+                        </td>
+                        <td class="stock-cell">—</td>
+                        <td>
+                            {{ detalle.cantidad }}
+                            {% for error in detalle.cantidad.errors %}
+                                <small class="field-error">{{ error }}</small>
+                            {% endfor %}
+                        </td>
+                        <td class="price-cell">Bs 0.00</td>
+                        <td class="subtotal-cell">Bs 0.00</td>
+                        <td class="row-delete">
+                            {% if detalle.DELETE %}
+                                <label>
+                                    {{ detalle.DELETE }}
+                                    <span>Quitar</span>
+                                </label>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="sale-total-panel">
+        <div>
+            <span>Total de la venta</span>
+            <small>Calculado con los precios actuales del catálogo</small>
+        </div>
+        <strong id="sale-total">Bs 0.00</strong>
+    </div>
+
+    <div class="form-group">
+        <label for="{{ form.observaciones.id_for_label }}">
+            {{ form.observaciones.label }}
+        </label>
+        {{ form.observaciones }}
+    </div>
+
+    <div class="form-actions">
+        <a class="btn"
+           href="{% url 'ventas:venta_lista' %}">
+            Cancelar
+        </a>
+
+        <button class="btn btn-primary"
+                type="submit"
+                id="save-sale">
+            Registrar venta
+        </button>
+    </div>
+
+</form>
+
+<template id="empty-form-template">
+    <tr class="sale-row">
+        <td>
+            {{ formset.empty_form.producto }}
+        </td>
+        <td class="stock-cell">—</td>
+        <td>
+            {{ formset.empty_form.cantidad }}
+        </td>
+        <td class="price-cell">Bs 0.00</td>
+        <td class="subtotal-cell">Bs 0.00</td>
+        <td class="row-delete">
+            {% if formset.empty_form.DELETE %}
+                <label>
+                    {{ formset.empty_form.DELETE }}
+                    <span>Quitar</span>
+                </label>
+            {% endif %}
+        </td>
+    </tr>
+</template>
+
+{{ productos_datos|json_script:"productos-datos" }}
+
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'js/venta_form.js' %}"></script>
+{% endblock %}

@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     # Aplicaciones del proyecto
     "inventario",
     "compras",
+    "ventas",
 ]
 
 MIDDLEWARE = [
@@ -51,6 +52,11 @@ MIDDLEWARE = [
 
 
 ROOT_URLCONF = "config.urls"
+
+
+LOGIN_URL = "/admin/login/"
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/admin/login/"
 
 
 TEMPLATES = [

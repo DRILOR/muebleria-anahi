@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}
+Clientes | Mueblería Anahí
+{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <h2>Clientes</h2>
+        <p>
+            Registro y seguimiento de los clientes de la mueblería.
+        </p>
+    </div>
+
+    <a class="btn btn-primary"
+       href="{% url 'ventas:cliente_crear' %}">
+        + Nuevo cliente
+    </a>
+</div>
+
+<form method="get"
+      class="filters-card">
+
+    <div class="filter-field filter-grow">
+        <label for="q">Buscar</label>
+        <input
+            id="q"
+            type="search"
+            name="q"
+            value="{{ busqueda }}"
+            placeholder="Nombre, NIT, teléfono o correo">
+    </div>
+
+    <div class="filter-field">
+        <label for="estado">Estado</label>
+        <select id="estado" name="estado">
+            <option value="activos"
+                    {% if estado == "activos" %}selected{% endif %}>
+                Activos
+            </option>
+            <option value="inactivos"
+                    {% if estado == "inactivos" %}selected{% endif %}>
+                Inactivos
+            </option>
+            <option value="todos"
+                    {% if estado == "todos" %}selected{% endif %}>
+                Todos
+            </option>
+        </select>
+    </div>
+
+    <div class="filter-actions">
+        <button class="btn btn-primary"
+                type="submit">
+            Filtrar
+        </button>
+        <a class="btn"
+           href="{% url 'ventas:cliente_lista' %}">
+            Limpiar
+        </a>
+    </div>
+
+</form>
+
+<div class="card table-card">
+
+    <table>
+        <thead>
+            <tr>
+                <th>Cliente</th>
+                <th>Contacto</th>
+                <th>Ventas</th>
+                <th>Total comprado</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for cliente in page_obj %}
+                <tr>
+                    <td>
+                        <a class="table-link"
+                           href="{% url 'ventas:cliente_detalle' cliente.pk %}">
+                            <strong>{{ cliente.nombre }}</strong>
+                        </a>
+                        <small class="cell-muted">
+                            {{ cliente.nit|default:"Sin NIT" }}
+                        </small>
+                    </td>
+                    <td>
+                        <span>{{ cliente.telefono|default:"Sin teléfono" }}</span>
+                        <small class="cell-muted">
+                            {{ cliente.email|default:"Sin correo" }}
+                        </small>
+                    </td>
+                    <td>
+                        <span class="badge badge-neutral">
+                            {{ cliente.ventas_realizadas }}
+                        </span>
+                    </td>
+                    <td>Bs {{ cliente.monto_comprado|floatformat:2 }}</td>
+                    <td>
+                        {% if cliente.activo %}
+                            <span class="badge activo">Activo</span>
+                        {% else %}
+                            <span class="badge inactivo">Inactivo</span>
+                        {% endif %}
+                    </td>
+                    <td class="actions">
+                        <a href="{% url 'ventas:cliente_detalle' cliente.pk %}">
+                            Ver
+                        </a>
+                        <a href="{% url 'ventas:cliente_editar' cliente.pk %}">
+                            Editar
+                        </a>
+                        {% if cliente.activo %}
+                            <a class="danger-link"
+                               href="{% url 'ventas:cliente_eliminar' cliente.pk %}">
+                                Desactivar
+                            </a>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="6"
+                        class="empty">
+                        No se encontraron clientes con los filtros seleccionados.
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</div>
+
+{% include "partials/paginacion.html" %}
+
+{% endblock %}

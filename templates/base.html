@@ -14,6 +14,9 @@
 
     <link rel="stylesheet"
           href="{% static 'css/app.css' %}">
+    <link rel="stylesheet"
+          href="{% static 'css/sprint2.css' %}">
+    {% block extra_css %}{% endblock %}
 </head>
 
 <body>
@@ -28,7 +31,21 @@
         <a href="{% url 'inventario:producto_lista' %}">
             Productos
         </a>
-
+        <a href="{% url 'inventario:material_lista' %}">
+            Materiales
+        </a>
+        <a href="{% url 'compras:compra_lista' %}">
+            Compras
+        </a>
+        <a href="{% url 'compras:proveedor_lista' %}">
+            Proveedores
+        </a>
+        <a href="{% url 'ventas:cliente_lista' %}">
+            Clientes
+        </a>
+        <a href="{% url 'ventas:venta_lista' %}">
+            Ventas
+        </a>
         <a href="/admin/">
             Administración
         </a>
@@ -49,6 +66,8 @@
     {% endblock %}
 
 </main>
+
+{% block extra_js %}{% endblock %}
 
 </body>
 </html>

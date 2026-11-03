@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}
+Anular venta | Mueblería Anahí
+{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <h2>Anular venta {{ venta.numero }}</h2>
+        <p>La operación es reversible únicamente mediante auditoría.</p>
+    </div>
+</div>
+
+<div class="card confirmation-card">
+    <p>
+        ¿Confirmas la anulación de la venta
+        <strong>{{ venta.numero }}</strong> por
+        <strong>Bs {{ venta.total|floatformat:2 }}</strong>?
+    </p>
+
+    <p class="muted-text">
+        Los productos de esta venta volverán al inventario y se registrará
+        un movimiento de entrada para mantener la trazabilidad.
+    </p>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label for="motivo">Motivo de la anulación</label>
+            <input id="motivo"
+                   class="form-control"
+                   type="text"
+                   name="motivo"
+                   maxlength="200"
+                   placeholder="Ej. Devolución solicitada por el cliente">
+        </div>
+
+        <div class="form-actions">
+            <a class="btn"
+               href="{% url 'ventas:venta_detalle' venta.pk %}">
+                Cancelar
+            </a>
+            <button class="btn btn-danger"
+                    type="submit">
+                Confirmar anulación
+            </button>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

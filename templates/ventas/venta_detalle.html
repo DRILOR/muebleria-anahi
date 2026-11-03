@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ venta.numero }} | Mueblería Anahí
+{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <h2>Venta {{ venta.numero }}</h2>
+        <p>
+            {{ venta.fecha|date:"d/m/Y H:i" }} ·
+            {{ venta.cliente.nombre }}
+        </p>
+    </div>
+
+    <div class="header-actions">
+        <a class="btn"
+           href="{% url 'ventas:venta_lista' %}">
+            Historial
+        </a>
+        <a class="btn"
+           href="{% url 'ventas:venta_comprobante' venta.pk %}">
+            Ver comprobante
+        </a>
+        <a class="btn btn-primary"
+           href="{% url 'ventas:venta_comprobante_pdf' venta.pk %}">
+            Descargar PDF
+        </a>
+    </div>
+</div>
+
+{% if venta.esta_anulada %}
+    <div class="alert alert-danger">
+        Esta venta fue anulada. Los productos fueron devueltos al inventario.
+    </div>
+{% endif %}
+
+<div class="stats-grid stats-grid-3">
+    <div class="stat-card">
+        <span class="stat-label">Estado</span>
+        <strong class="stat-value">
+            {% if venta.esta_anulada %}Anulada{% else %}Completada{% endif %}
+        </strong>
+    </div>
+
+    <div class="stat-card">
+        <span class="stat-label">Productos vendidos</span>
+        <strong class="stat-value">{{ venta.detalles.all|length }}</strong>
+    </div>
+
+    <div class="stat-card stat-card-accent">
+        <span class="stat-label">Total</span>
+        <strong class="stat-value">Bs {{ venta.total|floatformat:2 }}</strong>
+    </div>
+</div>
+
+<div class="card table-card">
+    <h3>Detalle de la venta</h3>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Código</th>
+                <th>Producto</th>
+                <th>Cantidad</th>
+                <th>Precio unitario</th>
+                <th>Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for detalle in venta.detalles.all %}
+                <tr>
+                    <td>{{ detalle.producto.codigo }}</td>
+                    <td>{{ detalle.producto.nombre }}</td>
+                    <td>{{ detalle.cantidad }}</td>
+                    <td>Bs {{ detalle.precio_unitario|floatformat:2 }}</td>
+                    <td>Bs {{ detalle.subtotal|floatformat:2 }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <th colspan="4">Total</th>
+                <th>Bs {{ venta.total|floatformat:2 }}</th>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+
+<div class="split-grid">
+    <div class="card">
+        <h3>Cliente</h3>
+        <dl class="detail-list">
+            <div>
+                <dt>Nombre</dt>
+                <dd>
+                    <a class="table-link"
+                       href="{% url 'ventas:cliente_detalle' venta.cliente.pk %}">
+                        {{ venta.cliente.nombre }}
+                    </a>
+                </dd>
+            </div>
+            <div>
+                <dt>NIT / Documento</dt>
+                <dd>{{ venta.cliente.nit|default:"Sin registro" }}</dd>
+            </div>
+            <div>
+                <dt>Teléfono</dt>
+                <dd>{{ venta.cliente.telefono|default:"Sin registro" }}</dd>
+            </div>
+            <div>
+                <dt>Correo</dt>
+                <dd>{{ venta.cliente.email|default:"Sin registro" }}</dd>
+            </div>
+        </dl>
+    </div>
+
+    <div class="card">
+        <h3>Pago y trazabilidad</h3>
+        <dl class="detail-list">
+            {% if venta.ingreso %}
+                <div>
+                    <dt>Método de pago</dt>
+                    <dd>{{ venta.ingreso.get_metodo_pago_display }}</dd>
+                </div>
+                <div>
+                    <dt>Referencia</dt>
+                    <dd>{{ venta.ingreso.referencia|default:"Sin referencia" }}</dd>
+                </div>
+                <div>
+                    <dt>Monto registrado</dt>
+                    <dd>Bs {{ venta.ingreso.monto|floatformat:2 }}</dd>
+                </div>
+            {% else %}
+                <div>
+                    <dt>Ingreso</dt>
+                    <dd>Sin registro de pago asociado</dd>
+                </div>
+            {% endif %}
+            <div>
+                <dt>Registrada por</dt>
+                <dd>
+                    {% if venta.creado_por %}
+                        {{ venta.creado_por.get_username }}
+                    {% else %}
+                        Sistema
+                    {% endif %}
+                </dd>
+            </div>
+            <div>
+                <dt>Observaciones</dt>
+                <dd>{{ venta.observaciones|default:"Sin observaciones" }}</dd>
+            </div>
+        </dl>
+    </div>
+</div>
+
+{% if user.is_staff and not venta.esta_anulada %}
+    <div class="card danger-zone">
+        <div>
+            <h3>Anular venta</h3>
+            <p>
+                La operación devuelve los productos al inventario y conserva
+                el registro para auditoría.
+            </p>
+        </div>
+        <a class="btn btn-danger"
+           href="{% url 'ventas:venta_anular' venta.pk %}">
+            Anular venta
+        </a>
+    </div>
+{% endif %}
+
+{% endblock %}

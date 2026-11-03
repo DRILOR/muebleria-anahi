@@ -1,0 +1,502 @@
+/* Sprint 2: clientes, ventas, reportes y AnahíBot */
+
+.topbar nav {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.topbar nav a {
+    font-size: 14px;
+    opacity: .92;
+    transition: opacity .15s ease;
+}
+
+.topbar nav a:hover {
+    opacity: 1;
+    text-decoration: underline;
+}
+
+.header-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.filters-card {
+    display: flex;
+    align-items: flex-end;
+    gap: 14px;
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, .03);
+}
+
+.filters-wrap {
+    flex-wrap: wrap;
+}
+
+.filter-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 150px;
+}
+
+.filter-field label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .4px;
+}
+
+.filter-field input,
+.filter-field select {
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    background: #ffffff;
+    color: var(--text);
+}
+
+.filter-grow {
+    flex: 1;
+    min-width: 220px;
+}
+
+.filter-actions {
+    display: flex;
+    gap: 8px;
+    padding-bottom: 1px;
+}
+
+.btn-small {
+    padding: 7px 12px;
+    font-size: 13px;
+}
+
+.btn:disabled {
+    opacity: .6;
+    cursor: wait;
+}
+
+.table-card {
+    overflow-x: auto;
+}
+
+.table-card table {
+    min-width: 680px;
+}
+
+.table-link {
+    color: var(--brown);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.table-link:hover {
+    text-decoration: underline;
+}
+
+.cell-muted {
+    display: block;
+    margin-top: 3px;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.money {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.muted-text {
+    color: var(--muted);
+}
+
+.badge-neutral {
+    background: #f1ece7;
+    color: var(--brown);
+}
+
+.stats-grid {
+    display: grid;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.stats-grid-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.stats-grid-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.stats-grid-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.stat-card {
+    position: relative;
+    background: #ffffff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, .03);
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 5px;
+    background: #cbb8a6;
+}
+
+.stat-card-accent::before {
+    background: var(--green);
+}
+
+.stat-card-warning::before {
+    background: var(--orange);
+}
+
+.stat-card-danger::before {
+    background: var(--red);
+}
+
+.stat-label {
+    display: block;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .5px;
+    text-transform: uppercase;
+}
+
+.stat-value {
+    display: block;
+    margin: 6px 0 2px;
+    font-size: 28px;
+    color: var(--brown-dark);
+    font-variant-numeric: tabular-nums;
+}
+
+.stat-card small {
+    color: var(--muted);
+}
+
+.split-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.split-grid > .card h3,
+.table-card h3 {
+    margin-top: 0;
+}
+
+.detail-list {
+    display: grid;
+    gap: 13px;
+    margin: 0;
+}
+
+.detail-list > div {
+    display: grid;
+    grid-template-columns: 150px 1fr;
+    gap: 12px;
+    padding-bottom: 11px;
+    border-bottom: 1px dashed var(--border);
+}
+
+.detail-list > div:last-child {
+    padding-bottom: 0;
+    border-bottom: 0;
+}
+
+.detail-list dt {
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .3px;
+}
+
+.detail-list dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.compact-table table {
+    min-width: 460px;
+}
+
+.form-alert {
+    background: #fbeaea;
+    border: 1px solid #efc9ca;
+    border-radius: 8px;
+    color: var(--red);
+    padding: 12px 15px;
+    margin-bottom: 18px;
+}
+
+.form-alert ul {
+    margin: 0;
+    padding-left: 18px;
+}
+
+.form-alert .errorlist {
+    margin: 0;
+    padding-left: 18px;
+}
+
+.form-section-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    margin: 4px 0 18px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+}
+
+.form-section-title h3 {
+    margin: 0 0 3px;
+}
+
+.form-section-title p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.form-grid-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.form-check {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: #faf7f3;
+}
+
+.form-check input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin-top: 2px;
+    accent-color: var(--brown);
+}
+
+.form-check label {
+    font-weight: 600;
+}
+
+.form-check label small {
+    display: block;
+    margin-top: 3px;
+    color: var(--muted);
+    font-weight: 400;
+}
+
+.form-card-wide {
+    max-width: none;
+}
+
+.alert {
+    border-radius: 9px;
+    padding: 13px 16px;
+    margin-bottom: 18px;
+}
+
+.alert-danger {
+    background: #fbeaea;
+    border: 1px solid #efc9ca;
+    color: var(--red);
+}
+
+.danger-zone {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 25px;
+    margin-top: 20px;
+    border-color: #efc9ca;
+}
+
+.danger-zone h3 {
+    margin: 0 0 4px;
+    color: var(--red);
+}
+
+.danger-zone p {
+    margin: 0;
+    color: var(--muted);
+}
+
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin-top: 18px;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.sale-lines-wrap {
+    overflow-x: auto;
+    margin-bottom: 18px;
+}
+
+.sale-lines {
+    width: 100%;
+    min-width: 740px;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.sale-lines th {
+    background: #f6f1ea;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+}
+
+.sale-lines th,
+.sale-lines td {
+    padding: 10px 8px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+}
+
+.sale-lines .form-control {
+    min-width: 80px;
+}
+
+.sale-lines .producto-select {
+    min-width: 240px;
+}
+
+.sale-lines .cantidad-input {
+    width: 90px;
+}
+
+.stock-cell,
+.price-cell,
+.subtotal-cell {
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.stock-cell {
+    color: var(--muted);
+}
+
+.subtotal-cell {
+    font-weight: 700;
+}
+
+.row-delete label {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--red);
+    font-size: 12px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.row-delete input {
+    width: auto;
+    accent-color: var(--red);
+}
+
+.sale-row.row-hidden {
+    opacity: .42;
+}
+
+.sale-total-panel {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    background: #f6f1ea;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin: 6px 0 22px;
+}
+
+.sale-total-panel > div {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.sale-total-panel span {
+    font-weight: 700;
+}
+
+.sale-total-panel small {
+    color: var(--muted);
+}
+
+.sale-total-panel strong {
+    font-size: 26px;
+    color: var(--brown-dark);
+    font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 900px) {
+    .stats-grid-4 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .split-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 700px) {
+    .filters-card,
+    .danger-zone,
+    .sale-total-panel {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filter-actions {
+        flex-wrap: wrap;
+    }
+
+    .stats-grid-2,
+    .stats-grid-3,
+    .stats-grid-4 {
+        grid-template-columns: 1fr;
+    }
+
+    .form-grid-2 {
+        grid-template-columns: 1fr;
+    }
+
+    .detail-list > div {
+        grid-template-columns: 1fr;
+        gap: 3px;
+    }
+
+    .header-actions {
+        width: 100%;
+    }
+}

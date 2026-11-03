@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ titulo }} | Mueblería Anahí
+{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <h2>{{ titulo }}</h2>
+        <p>{{ subtitulo }}</p>
+    </div>
+</div>
+
+<form method="post"
+      class="card form-card">
+
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+        <div class="form-alert">
+            {{ form.non_field_errors }}
+        </div>
+    {% endif %}
+
+    <div class="form-section-title">
+        <h3>Información personal</h3>
+        <p>Los campos marcados con * son obligatorios.</p>
+    </div>
+
+    <div class="form-grid form-grid-2">
+        <div class="form-group">
+            <label for="{{ form.nombre.id_for_label }}">
+                {{ form.nombre.label }} *
+            </label>
+            {{ form.nombre }}
+            {% for error in form.nombre.errors %}
+                <small class="field-error">{{ error }}</small>
+            {% endfor %}
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.nit.id_for_label }}">
+                {{ form.nit.label }}
+            </label>
+            {{ form.nit }}
+            {% for error in form.nit.errors %}
+                <small class="field-error">{{ error }}</small>
+            {% endfor %}
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.telefono.id_for_label }}">
+                {{ form.telefono.label }}
+            </label>
+            {{ form.telefono }}
+            {% for error in form.telefono.errors %}
+                <small class="field-error">{{ error }}</small>
+            {% endfor %}
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.email.id_for_label }}">
+                {{ form.email.label }}
+            </label>
+            {{ form.email }}
+            {% for error in form.email.errors %}
+                <small class="field-error">{{ error }}</small>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="{{ form.direccion.id_for_label }}">
+            {{ form.direccion.label }}
+        </label>
+        {{ form.direccion }}
+        {% for error in form.direccion.errors %}
+            <small class="field-error">{{ error }}</small>
+        {% endfor %}
+    </div>
+
+    <div class="form-check">
+        {{ form.activo }}
+        <label for="{{ form.activo.id_for_label }}">
+            {{ form.activo.label }}
+            <small>Los clientes inactivos no aparecen al registrar ventas.</small>
+        </label>
+    </div>
+
+    <div class="form-actions">
+        <a class="btn"
+           href="{% url 'ventas:cliente_lista' %}">
+            Cancelar
+        </a>
+
+        <button class="btn btn-primary"
+                type="submit">
+            Guardar cliente
+        </button>
+    </div>
+
+</form>
+
+{% endblock %}
