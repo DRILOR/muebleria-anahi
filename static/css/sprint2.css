@@ -500,3 +500,137 @@
         width: 100%;
     }
 }
+
+/* Reportes administrativos */
+
+.report-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.report-tabs a {
+    padding: 10px 16px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: #ffffff;
+    color: var(--brown);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.report-tabs a:hover {
+    background: #f6f1ea;
+}
+
+.report-tabs a.active {
+    background: var(--brown);
+    border-color: var(--brown);
+    color: #ffffff;
+}
+
+.report-grid {
+    align-items: start;
+}
+
+.report-table-card {
+    margin-top: 20px;
+}
+
+.report-section-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 14px;
+}
+
+.report-section-head h3 {
+    margin: 0 0 3px;
+}
+
+.report-section-head p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.report-block-title {
+    margin: 30px 0 14px;
+    color: var(--brown-dark);
+}
+
+.bar-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.bar-row {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.bar-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    font-size: 13px;
+}
+
+.bar-head small {
+    display: block;
+}
+
+.bar-track {
+    height: 9px;
+    overflow: hidden;
+    border-radius: 99px;
+    background: #eee8e2;
+}
+
+.bar-fill {
+    height: 100%;
+    border-radius: 99px;
+    background: linear-gradient(90deg, #8b684c, #26734d);
+    transition: width .25s ease;
+}
+
+.bar-row > small {
+    color: var(--muted);
+    font-size: 12px;
+}
+
+table .right,
+.right {
+    text-align: right;
+}
+
+table .center,
+.center {
+    text-align: center;
+}
+
+.badge.stock-badge-agotado {
+    background: #fbeaea;
+    color: var(--red);
+}
+
+.badge.stock-badge-bajo {
+    background: #fdf0df;
+    color: var(--orange);
+}
+
+@media (max-width: 700px) {
+    .report-section-head {
+        flex-direction: column;
+    }
+
+    .report-tabs a {
+        flex: 1;
+        text-align: center;
+    }
+}

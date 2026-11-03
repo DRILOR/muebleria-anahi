@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+
+{% block title %}
+Reporte de inventario | Mueblería Anahí
+{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <h2>Reportes administrativos</h2>
+        <p>Estado real del inventario de productos y materiales.</p>
+    </div>
+
+    <div class="header-actions">
+        <a class="btn"
+           href="{% url 'reportes:inventario_pdf' %}?{{ request.GET.urlencode }}">
+            Exportar PDF
+        </a>
+        <a class="btn btn-primary"
+           href="{% url 'reportes:inventario_excel' %}?{{ request.GET.urlencode }}">
+            Exportar Excel
+        </a>
+    </div>
+</div>
+
+{% include "reportes/_tabs.html" %}
+
+<form method="get"
+      class="filters-card filters-wrap">
+    <div class="filter-field filter-grow">
+        <label for="q">Buscar</label>
+        <input id="q"
+               type="search"
+               name="q"
+               value="{{ busqueda }}"
+               placeholder="Código, nombre o categoría">
+    </div>
+
+    <div class="filter-field">
+        <label for="categoria">Categoría</label>
+        <select id="categoria" name="categoria">
+            <option value="">Todas</option>
+            {% for categoria in categorias %}
+                <option value="{{ categoria.pk }}"
+                        {% if categoria.pk == categoria_id %}selected{% endif %}>
+                    {{ categoria.nombre }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="filter-field">
+        <label for="estado">Estado del stock</label>
+        <select id="estado" name="estado">
+            <option value="">Todos</option>
+            <option value="disponible"
+                    {% if estado == "disponible" %}selected{% endif %}>
+                Disponible
+            </option>
+            <option value="bajo"
+                    {% if estado == "bajo" %}selected{% endif %}>
+                Stock bajo
+            </option>
+            <option value="agotado"
+                    {% if estado == "agotado" %}selected{% endif %}>
+                Agotado
+            </option>
+        </select>
+    </div>
+
+    <div class="filter-field">
+        <label for="activos">Registros</label>
+        <select id="activos" name="activos">
+            <option value="1"
+                    {% if activos != "0" %}selected{% endif %}>
+                Solo activos
+            </option>
+            <option value="0"
+                    {% if activos == "0" %}selected{% endif %}>
+                Activos e inactivos
+            </option>
+        </select>
+    </div>
+
+    <div class="filter-actions">
+        <button class="btn btn-primary" type="submit">
+            Aplicar filtros
+        </button>
+        <a class="btn" href="{% url 'reportes:inventario' %}">
+            Limpiar
+        </a>
+    </div>
+</form>
+
+<h3 class="report-block-title">Productos terminados</h3>
+
+<div class="stats-grid stats-grid-4">
+    <div class="stat-card">
+        <span class="stat-label">Productos</span>
+        <strong class="stat-value">{{ resumen_productos.total }}</strong>
+        <small>{{ resumen_productos.disponibles }} disponible(s)</small>
+    </div>
+    <div class="stat-card stat-card-danger">
+        <span class="stat-label">Agotados</span>
+        <strong class="stat-value">{{ resumen_productos.agotados }}</strong>
+        <small>Requieren reposición inmediata</small>
+    </div>
+    <div class="stat-card stat-card-warning">
+        <span class="stat-label">Stock bajo</span>
+        <strong class="stat-value">{{ resumen_productos.bajos }}</strong>
+        <small>En o por debajo del mínimo</small>
+    </div>
+    <div class="stat-card stat-card-accent">
+        <span class="stat-label">Valor del inventario</span>
+        <strong class="stat-value">
+            Bs {{ resumen_productos.valor|floatformat:2 }}
+        </strong>
+        <small>Stock por precio de venta</small>
+    </div>
+</div>
+
+<div class="card table-card report-table-card">
+    <table>
+        <thead>
+            <tr>
+                <th>Código</th>
+                <th>Producto</th>
+                <th>Categoría</th>
+                <th class="center">Stock</th>
+                <th class="center">Mínimo</th>
+                <th class="right">Valor</th>
+                <th class="center">Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for producto in productos %}
+                <tr>
+                    <td>{{ producto.codigo }}</td>
+                    <td>{{ producto.nombre }}</td>
+                    <td>{{ producto.categoria.nombre }}</td>
+                    <td class="center">{{ producto.stock }}</td>
+                    <td class="center">{{ producto.stock_minimo }}</td>
+                    <td class="right money">
+                        Bs {{ producto.valor_inventario|floatformat:2 }}
+                    </td>
+                    <td class="center">
+                        {% if producto.stock == 0 %}
+                            <span class="badge stock-badge-agotado">Agotado</span>
+                        {% elif producto.stock <= producto.stock_minimo %}
+                            <span class="badge stock-badge-bajo">Stock bajo</span>
+                        {% else %}
+                            <span class="badge activo">Disponible</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="7" class="empty">
+                        No hay productos que coincidan con los filtros.
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <th colspan="5">Total de productos</th>
+                <th class="right">Bs {{ resumen_productos.valor|floatformat:2 }}</th>
+                <th>{{ resumen_productos.total }} registro(s)</th>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+
+<h3 class="report-block-title">Materiales</h3>
+
+<div class="stats-grid stats-grid-4">
+    <div class="stat-card">
+        <span class="stat-label">Materiales</span>
+        <strong class="stat-value">{{ resumen_materiales.total }}</strong>
+        <small>{{ resumen_materiales.disponibles }} disponible(s)</small>
+    </div>
+    <div class="stat-card stat-card-danger">
+        <span class="stat-label">Agotados</span>
+        <strong class="stat-value">{{ resumen_materiales.agotados }}</strong>
+        <small>Sin existencias</small>
+    </div>
+    <div class="stat-card stat-card-warning">
+        <span class="stat-label">Stock bajo</span>
+        <strong class="stat-value">{{ resumen_materiales.bajos }}</strong>
+        <small>En o por debajo del mínimo</small>
+    </div>
+    <div class="stat-card stat-card-accent">
+        <span class="stat-label">Valor del inventario</span>
+        <strong class="stat-value">
+            Bs {{ resumen_materiales.valor|floatformat:2 }}
+        </strong>
+        <small>Stock por costo de referencia</small>
+    </div>
+</div>
+
+<div class="card table-card report-table-card">
+    <table>
+        <thead>
+            <tr>
+                <th>Código</th>
+                <th>Material</th>
+                <th>Unidad</th>
+                <th class="center">Stock</th>
+                <th class="center">Mínimo</th>
+                <th class="right">Valor</th>
+                <th class="center">Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for material in materiales %}
+                <tr>
+                    <td>{{ material.codigo }}</td>
+                    <td>{{ material.nombre }}</td>
+                    <td>{{ material.get_unidad_medida_display }}</td>
+                    <td class="center">{{ material.stock|floatformat:2 }}</td>
+                    <td class="center">{{ material.stock_minimo|floatformat:2 }}</td>
+                    <td class="right money">
+                        Bs {{ material.valor_inventario|floatformat:2 }}
+                    </td>
+                    <td class="center">
+                        {% if material.stock == 0 %}
+                            <span class="badge stock-badge-agotado">Agotado</span>
+                        {% elif material.stock <= material.stock_minimo %}
+                            <span class="badge stock-badge-bajo">Stock bajo</span>
+                        {% else %}
+                            <span class="badge activo">Disponible</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="7" class="empty">
+                        No hay materiales que coincidan con los filtros.
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <th colspan="5">Total de materiales</th>
+                <th class="right">Bs {{ resumen_materiales.valor|floatformat:2 }}</th>
+                <th>{{ resumen_materiales.total }} registro(s)</th>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+
+{% endblock %}

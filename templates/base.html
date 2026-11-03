@@ -46,6 +46,11 @@
         <a href="{% url 'ventas:venta_lista' %}">
             Ventas
         </a>
+        {% if user.is_staff %}
+            <a href="{% url 'reportes:ventas' %}">
+                Reportes
+            </a>
+        {% endif %}
         <a href="/admin/">
             Administración
         </a>

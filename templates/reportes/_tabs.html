@@ -1,0 +1,18 @@
+<nav class="report-tabs" aria-label="Reportes">
+    <a class="{% if request.resolver_match.url_name == 'ventas' %}active{% endif %}"
+       href="{% url 'reportes:ventas' %}">
+        Ventas
+    </a>
+    <a class="{% if request.resolver_match.url_name == 'productos' %}active{% endif %}"
+       href="{% url 'reportes:productos' %}">
+        Más vendidos
+    </a>
+    <a class="{% if request.resolver_match.url_name == 'inventario' %}active{% endif %}"
+       href="{% url 'reportes:inventario' %}">
+        Inventario
+    </a>
+    <a class="{% if request.resolver_match.url_name == 'ingresos' %}active{% endif %}"
+       href="{% url 'reportes:ingresos' %}">
+        Ingresos
+    </a>
+</nav>

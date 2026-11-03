@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+
+{% block title %}
+Reporte de ventas | Mueblería Anahí
+{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <h2>Reporte general de ventas</h2>
+        <p>Información real del sistema para la toma de decisiones.</p>
+    </div>
+
+    <div class="header-actions">
+        <a class="btn"
+           href="{% url 'reportes:ventas_pdf' %}?{{ request.GET.urlencode }}">
+            Exportar PDF
+        </a>
+        <a class="btn btn-primary"
+           href="{% url 'reportes:ventas_excel' %}?{{ request.GET.urlencode }}">
+            Exportar Excel
+        </a>
+    </div>
+</div>
+
+{% include "reportes/_tabs.html" %}
+
+{% if periodo.error %}
+    <div class="form-alert">{{ periodo.error }}</div>
+{% endif %}
+
+<form method="get"
+      class="filters-card">
+    <div class="filter-field">
+        <label for="desde">Desde</label>
+        <input id="desde"
+               type="date"
+               name="desde"
+               value="{{ periodo.desde_texto }}">
+    </div>
+
+    <div class="filter-field">
+        <label for="hasta">Hasta</label>
+        <input id="hasta"
+               type="date"
+               name="hasta"
+               value="{{ periodo.hasta_texto }}">
+    </div>
+
+    <div class="filter-actions">
+        <button class="btn btn-primary" type="submit">
+            Aplicar filtros
+        </button>
+        <a class="btn" href="{% url 'reportes:ventas' %}">
+            Limpiar
+        </a>
+    </div>
+</form>
+
+<div class="stats-grid stats-grid-4">
+    <div class="stat-card">
+        <span class="stat-label">Ventas completadas</span>
+        <strong class="stat-value">{{ resumen.cantidad }}</strong>
+        <small>{{ resumen.unidades }} unidades vendidas</small>
+    </div>
+    <div class="stat-card stat-card-accent">
+        <span class="stat-label">Ingresos</span>
+        <strong class="stat-value">Bs {{ resumen.total|floatformat:2 }}</strong>
+        <small>Ticket promedio Bs {{ resumen.promedio|floatformat:2 }}</small>
+    </div>
+    <div class="stat-card stat-card-warning">
+        <span class="stat-label">Ventas anuladas</span>
+        <strong class="stat-value">{{ resumen.anuladas_cantidad }}</strong>
+        <small>Monto Bs {{ resumen.anuladas_total|floatformat:2 }}</small>
+    </div>
+    <div class="stat-card">
+        <span class="stat-label">Métodos de pago usados</span>
+        <strong class="stat-value">{{ resumen_ingresos.cantidad }}</strong>
+        <small>Pagos registrados en el periodo</small>
+    </div>
+</div>
+
+<div class="split-grid report-grid">
+    <div class="card">
+        <h3>Ingresos por método de pago</h3>
+
+        <div class="bar-list">
+            {% for metodo in resumen_ingresos.por_metodo %}
+                <div class="bar-row">
+                    <div class="bar-head">
+                        <span>{{ metodo.nombre }}</span>
+                        <strong>Bs {{ metodo.total|floatformat:2 }}</strong>
+                    </div>
+                    <div class="bar-track">
+                        <div class="bar-fill"
+                             style="width: {% widthratio metodo.total max_metodo 100 %}%">
+                        </div>
+                    </div>
+                    <small>{{ metodo.cantidad }} pago(s)</small>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>Resumen de ingresos</h3>
+        <dl class="detail-list">
+            <div>
+                <dt>Total de ingresos</dt>
+                <dd><strong>Bs {{ resumen_ingresos.total|floatformat:2 }}</strong></dd>
+            </div>
+            <div>
+                <dt>Pagos registrados</dt>
+                <dd>{{ resumen_ingresos.cantidad }}</dd>
+            </div>
+            <div>
+                <dt>Periodo consultado</dt>
+                <dd>
+                    {{ periodo.desde|date:"d/m/Y"|default:"Inicio" }}
+                    al
+                    {{ periodo.hasta|date:"d/m/Y"|default:"Hoy" }}
+                </dd>
+            </div>
+            <div>
+                <dt>Ventas anuladas</dt>
+                <dd>
+                    {{ resumen.anuladas_cantidad }} ·
+                    Bs {{ resumen.anuladas_total|floatformat:2 }}
+                </dd>
+            </div>
+        </dl>
+    </div>
+</div>
+
+<div class="card table-card report-table-card">
+    <div class="report-section-head">
+        <div>
+            <h3>Detalle de ventas del periodo</h3>
+            <p>Se muestran las ventas completadas y anuladas para auditoría.</p>
+        </div>
+        <span class="badge badge-neutral">
+            {{ page_obj.paginator.count }} registro(s)
+        </span>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Comprobante</th>
+                <th>Fecha</th>
+                <th>Cliente</th>
+                <th>Productos</th>
+                <th>Pago</th>
+                <th>Estado</th>
+                <th class="right">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for venta in page_obj %}
+                <tr>
+                    <td>
+                        <a class="table-link"
+                           href="{% url 'ventas:venta_detalle' venta.pk %}">
+                            {{ venta.numero }}
+                        </a>
+                    </td>
+                    <td>{{ venta.fecha|date:"d/m/Y H:i" }}</td>
+                    <td>{{ venta.cliente.nombre }}</td>
+                    <td>{{ venta.detalles.all|length }}</td>
+                    <td>
+                        {% if venta.ingreso %}
+                            {{ venta.ingreso.get_metodo_pago_display }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if venta.esta_anulada %}
+                            <span class="badge inactivo">Anulada</span>
+                        {% else %}
+                            <span class="badge activo">Completada</span>
+                        {% endif %}
+                    </td>
+                    <td class="right money">Bs {{ venta.total|floatformat:2 }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="7" class="empty">
+                        No hay ventas registradas en el periodo seleccionado.
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <th colspan="6">Total de ventas completadas</th>
+                <th class="right">Bs {{ resumen.total|floatformat:2 }}</th>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+
+{% include "partials/paginacion.html" %}
+
+{% endblock %}
