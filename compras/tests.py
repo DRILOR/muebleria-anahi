@@ -220,3 +220,52 @@ class CompraViewTests(TestCase):
             self.material.stock,
             Decimal("55"),
         )
+
+    def test_editar_proveedor(self):
+        url = reverse("compras:proveedor_editar", args=[self.proveedor.pk])
+        get_res = self.client.get(url)
+        self.assertEqual(get_res.status_code, 200)
+
+        post_res = self.client.post(
+            url,
+            {
+                "nombre": "Maderas del Sur S.R.L.",
+                "nit": "987654",
+                "telefono": "71112233",
+                "email": "contacto@maderasdelsur.com",
+                "direccion": "Av. Principal 123",
+                "activo": "on",
+            },
+        )
+        self.assertEqual(post_res.status_code, 302)
+        self.proveedor.refresh_from_db()
+        self.assertEqual(self.proveedor.nombre, "Maderas del Sur S.R.L.")
+
+    def test_compra_sin_materiales_muestra_error(self):
+        response = self.client.post(
+            reverse("compras:compra_crear"),
+            {
+                "proveedor": self.proveedor.pk,
+                "numero_documento": "FAC-003",
+                "observaciones": "",
+                "form-TOTAL_FORMS": "1",
+                "form-INITIAL_FORMS": "0",
+                "form-MIN_NUM_FORMS": "1",
+                "form-MAX_NUM_FORMS": "1000",
+                "form-0-material": "",
+                "form-0-cantidad": "",
+                "form-0-costo_unitario": "",
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Este campo es obligatorio")
+
+
+    def test_str_proveedor_y_compra(self):
+        self.assertEqual(str(self.proveedor), self.proveedor.nombre)
+        compra = Compra.objects.create(
+            proveedor=self.proveedor,
+            numero_documento="FAC-999",
+            creado_por=self.user,
+        )
+        self.assertIn(str(compra.pk), str(compra))

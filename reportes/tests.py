@@ -761,3 +761,38 @@ class ReporteViewTests(BaseReporteTestCase):
         )
 
         self.assertEqual(response.context["page_obj"].number, 2)
+
+
+class SistemaIntegracionYDespliegueTests(BaseReporteTestCase):
+    def test_health_check_endpoint(self):
+        response = self.client.get(reverse("health_check"))
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data["status"], "healthy")
+        self.assertEqual(data["database"], "ok")
+
+    def test_custom_404_page(self):
+        response = self.client.get("/ruta-totalmente-inexistente-404/")
+        self.assertEqual(response.status_code, 404)
+        self.assertContains(response, "Página no encontrada", status_code=404)
+        self.assertContains(response, "404", status_code=404)
+
+    def test_custom_500_page(self):
+        from config.views import custom_500_view
+        from django.test import RequestFactory
+
+        request = RequestFactory().get("/simular-error-500/")
+        response = custom_500_view(request)
+        self.assertEqual(response.status_code, 500)
+        self.assertIn(b"Error interno del servidor", response.content)
+        self.assertIn(b"500", response.content)
+
+    def test_periodo_texto_casos_borde(self):
+        from reportes.builders import _periodo_texto
+        from datetime import date
+
+        d = date(2026, 1, 1)
+        self.assertEqual(_periodo_texto(d, None), "Desde el 01/01/2026")
+        self.assertEqual(_periodo_texto(None, d), "Hasta el 01/01/2026")
+        self.assertEqual(_periodo_texto(None, None), "Todos los registros")
+

@@ -2,6 +2,8 @@ from django.contrib import admin
 from django.urls import include, path
 from django.views.generic import RedirectView
 
+from .views import custom_404_view, custom_500_view, health_check
+
 
 urlpatterns = [
     path(
@@ -11,6 +13,7 @@ urlpatterns = [
             permanent=False,
         ),
     ),
+    path("health/", health_check, name="health_check"),
     path("admin/", admin.site.urls),
     path("", include("inventario.urls")),
     path("", include("compras.urls")),
@@ -18,3 +21,6 @@ urlpatterns = [
     path("", include("reportes.urls")),
     path("", include("anahibot.urls")),
 ]
+
+handler404 = custom_404_view
+handler500 = custom_500_view

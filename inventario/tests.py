@@ -378,3 +378,75 @@ class MaterialViewTests(TestCase):
             self.material.stock,
             Decimal("20"),
         )
+
+    def test_crear_material_vista_get_y_post(self):
+        url = reverse("inventario:material_crear")
+        get_res = self.client.get(url)
+        self.assertEqual(get_res.status_code, 200)
+
+        post_res = self.client.post(
+            url,
+            {
+                "codigo": "BAR-001",
+                "nombre": "Barniz poliuretano",
+                "unidad_medida": Material.LITRO,
+                "stock": "10.00",
+                "stock_minimo": "2.00",
+                "costo_referencia": "45.00",
+                "activo": "on",
+            },
+        )
+        self.assertEqual(post_res.status_code, 302)
+        self.assertTrue(Material.objects.filter(codigo="BAR-001").exists())
+
+    def test_editar_material_vista_get_y_post(self):
+        url = reverse("inventario:material_editar", args=[self.material.pk])
+        get_res = self.client.get(url)
+        self.assertEqual(get_res.status_code, 200)
+
+        post_res = self.client.post(
+            url,
+            {
+                "codigo": "MAD-001",
+                "nombre": "Madera roble seleccionada",
+                "unidad_medida": Material.TABLON,
+                "stock": "5.00",
+                "stock_minimo": "10.00",
+                "costo_referencia": "95.00",
+                "activo": "on",
+            },
+        )
+        self.assertEqual(post_res.status_code, 302)
+        self.material.refresh_from_db()
+        self.assertEqual(self.material.nombre, "Madera roble seleccionada")
+
+    def test_historial_movimientos_vista(self):
+        registrar_movimiento(
+            material_id=self.material.pk,
+            tipo=MovimientoInventario.ENTRADA,
+            cantidad=15,
+            motivo="Entrada prueba",
+            usuario=self.user,
+        )
+        response = self.client.get(reverse("inventario:movimiento_historial"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Entrada prueba")
+
+    def test_lista_materiales_filtro_busqueda(self):
+        response = self.client.get(reverse("inventario:material_lista") + "?q=roble")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Madera roble")
+
+    def test_movimiento_crear_invalido_muestra_error(self):
+        response = self.client.post(
+            reverse("inventario:movimiento_crear"),
+            {
+                "material": self.material.pk,
+                "tipo": MovimientoInventario.SALIDA,
+                "cantidad": "999",
+                "motivo": "Salida excesiva",
+                "referencia": "",
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Stock insuficiente")
