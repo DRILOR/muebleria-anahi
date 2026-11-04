@@ -33,3 +33,8 @@ def custom_500_view(request):
     """Vista personalizada para errores internos del servidor (HTTP 500)."""
     return render(request, "500.html", status=500)
 
+
+def csrf_failure(request, reason=""):
+    """Keep CSRF rejection at 403 and explain how to refresh an expired form."""
+    return render(request, "403_csrf.html", {"form_url": request.path}, status=403)
+

@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Formulario vencido | Mueblería Anahí</title>
+    <link rel="stylesheet" href="/static/css/catalogo.css">
+</head>
+<body>
+    <main class="csrf-error">
+        <p class="eyebrow">SESIÓN SEGURA</p>
+        <h1>Este formulario venció</h1>
+        <p>La página se abrió antes de renovar tu sesión o desde otra dirección local. Recarga el formulario antes de volver a enviarlo.</p>
+        <a class="button button-dark" href="{{ form_url }}">Recargar formulario</a>
+        <a class="csrf-back" href="/catalogo/">Volver al catálogo</a>
+    </main>
+</body>
+</html>

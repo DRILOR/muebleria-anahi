@@ -1,4 +1,7 @@
 from django import forms
+from django.contrib.auth import get_user_model, password_validation
+from django.contrib.auth.forms import PasswordChangeForm
+from django.core.exceptions import ValidationError
 from django.forms import formset_factory
 from django.forms.formsets import BaseFormSet
 
@@ -162,3 +165,39 @@ DetalleVentaFormSet = formset_factory(
     can_delete=True,
     formset=DetalleVentaBaseFormSet,
 )
+
+
+class RegistroClienteForm(forms.Form):
+    nombre = forms.CharField(max_length=150, label="Nombre", widget=forms.TextInput(attrs={"autocomplete": "given-name"}))
+    apellidos = forms.CharField(max_length=150, label="Apellidos", widget=forms.TextInput(attrs={"autocomplete": "family-name"}))
+    email = forms.EmailField(label="Correo electrónico", widget=forms.EmailInput(attrs={"autocomplete": "email"}))
+    password1 = forms.CharField(label="Contraseña", widget=forms.PasswordInput(attrs={"autocomplete": "new-password"}))
+    password2 = forms.CharField(label="Confirmar contraseña", widget=forms.PasswordInput(attrs={"autocomplete": "new-password"}))
+
+    def clean_email(self):
+        email = self.cleaned_data["email"].strip().lower()
+        if len(email) > 150:
+            raise forms.ValidationError("El correo no puede superar 150 caracteres.")
+        User = get_user_model()
+        if User.objects.filter(email__iexact=email).exists():
+            raise forms.ValidationError("Ya existe una cuenta con este correo.")
+        if User.objects.filter(username__iexact=email).exists():
+            raise forms.ValidationError("Este correo ya está asociado a una cuenta.")
+        return email
+
+    def clean(self):
+        cleaned = super().clean()
+        password = cleaned.get("password1")
+        if password:
+            try:
+                password_validation.validate_password(password)
+            except ValidationError as error:
+                self.add_error("password1", error)
+        if cleaned.get("password1") and cleaned.get("password2") and cleaned["password1"] != cleaned["password2"]:
+            self.add_error("password2", "Las contraseñas no coinciden.")
+        return cleaned
+
+
+class AccesoClienteForm(forms.Form):
+    email = forms.EmailField(label="Correo electrónico", widget=forms.EmailInput(attrs={"autocomplete": "username", "autofocus": True}))
+    password = forms.CharField(label="Contraseña", widget=forms.PasswordInput(attrs={"autocomplete": "current-password"}))

@@ -15,7 +15,7 @@
     </div>
 </div>
 
-<form method="post"
+<form method="post" enctype="multipart/form-data"
       class="card form-card">
 
     {% csrf_token %}
@@ -25,6 +25,8 @@
     {% endif %}
 
     <h3>Información general</h3>
+
+    {% if producto.imagen %}<p>Imagen actual: <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}" style="max-width:180px"></p>{% endif %}
 
     {% for field in producto_form %}
 

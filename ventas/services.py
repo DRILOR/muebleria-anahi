@@ -12,6 +12,8 @@ from .models import (
     Ingreso,
     MovimientoProducto,
     Venta,
+    PedidoCliente,
+    DetallePedido,
 )
 
 
@@ -271,3 +273,81 @@ def anular_venta(venta, usuario=None, motivo=""):
     )
 
     return venta_bloqueada
+
+
+@transaction.atomic
+def crear_pedido(cliente, items, telefono="", direccion=""):
+    """Create a pending customer order without reserving or changing stock."""
+    cliente = _obtener_cliente(cliente)
+    if not cliente.activo:
+        raise ValidationError("No se puede crear un pedido para un cliente inactivo.")
+    cantidades = _agrupar_items(items)
+    productos = {p.pk: p for p in Producto.objects.filter(pk__in=cantidades, activo=True)}
+    if len(productos) != len(cantidades):
+        raise ValidationError("Uno de los productos ya no está disponible.")
+    pedido = PedidoCliente.objects.create(
+        cliente=cliente, telefono_contacto=telefono.strip(), direccion_entrega=direccion.strip(),
+    )
+    total = Decimal("0.00")
+    for producto_id, cantidad in cantidades.items():
+        producto = productos[producto_id]
+        if cantidad > producto.stock:
+            raise ValidationError(f"Stock insuficiente para {producto.nombre}. Disponible: {producto.stock}.")
+        precio = Decimal(producto.precio).quantize(CENTAVO)
+        subtotal = (precio * cantidad).quantize(CENTAVO, rounding=ROUND_HALF_UP)
+        DetallePedido.objects.create(pedido=pedido, producto=producto, cantidad=cantidad,
+                                     precio_unitario=precio, subtotal=subtotal)
+        total += subtotal
+    pedido.total = total
+    pedido.save(update_fields=["total", "actualizado_en"])
+    return pedido
+
+
+@transaction.atomic
+def confirmar_pedido(pedido, usuario=None):
+    """Idempotently convert a pending request through the official sale service."""
+    try:
+        pedido = PedidoCliente.objects.select_for_update().select_related("cliente").get(pk=pedido.pk)
+    except PedidoCliente.DoesNotExist:
+        raise ValidationError("El pedido indicado no existe.")
+    if pedido.venta_id:
+        return pedido.venta
+    if pedido.estado != PedidoCliente.PENDIENTE:
+        raise ValidationError("Solo se pueden confirmar pedidos pendientes.")
+    items = [
+        {"producto": detalle.producto_id, "cantidad": detalle.cantidad}
+        for detalle in pedido.detalles.all()
+    ]
+    venta = registrar_venta(
+        cliente=pedido.cliente, items=items, usuario=usuario,
+        observaciones=f"Pedido web {pedido.numero}",
+    )
+    # registrar_venta usa los precios vigentes al confirmar; guardar el mismo total y desglose.
+    pedido.total = venta.total
+    ventas_por_producto = {d.producto_id: d for d in venta.detalles.all()}
+    for detalle in pedido.detalles.all():
+        venta_detalle = ventas_por_producto[detalle.producto_id]
+        detalle.precio_unitario = venta_detalle.precio_unitario
+        detalle.subtotal = venta_detalle.subtotal
+        detalle.save(update_fields=["precio_unitario", "subtotal"])
+    pedido.estado = PedidoCliente.CONFIRMADO
+    pedido.venta = venta
+    pedido.cambiado_por = usuario
+    pedido.save(update_fields=["total", "estado", "venta", "cambiado_por", "actualizado_en"])
+    return venta
+
+
+@transaction.atomic
+def cambiar_estado_pedido(pedido, estado, usuario=None):
+    pedido = PedidoCliente.objects.select_for_update().get(pk=pedido.pk)
+    if estado == PedidoCliente.CONFIRMADO:
+        return confirmar_pedido(pedido, usuario)
+    if estado == PedidoCliente.CANCELADO and pedido.estado == PedidoCliente.PENDIENTE:
+        pedido.estado = estado
+    elif estado == PedidoCliente.ENTREGADO and pedido.estado == PedidoCliente.CONFIRMADO and pedido.venta_id:
+        pedido.estado = estado
+    else:
+        raise ValidationError("La transición solicitada no es válida.")
+    pedido.cambiado_por = usuario
+    pedido.save(update_fields=["estado", "cambiado_por", "actualizado_en"])
+    return pedido

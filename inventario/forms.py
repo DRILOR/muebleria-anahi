@@ -14,6 +14,7 @@ class ProductoForm(forms.ModelForm):
             "codigo",
             "nombre",
             "descripcion",
+            "imagen",
             "categoria",
             "precio",
             "stock",

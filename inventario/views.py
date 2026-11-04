@@ -1,5 +1,5 @@
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 
@@ -11,7 +11,7 @@ from .forms import MaterialForm, MovimientoMaterialForm
 from .models import Material, MovimientoInventario
 from .services import registrar_movimiento
 
-@login_required
+@staff_member_required
 def producto_lista(request):
     productos = Producto.objects.select_related(
         "categoria"
@@ -38,10 +38,10 @@ def producto_lista(request):
     )
 
 
-@login_required
+@staff_member_required
 def producto_crear(request):
     if request.method == "POST":
-        producto_form = ProductoForm(request.POST)
+        producto_form = ProductoForm(request.POST, request.FILES)
         medida_form = MedidaProductoForm(request.POST)
 
         if producto_form.is_valid() and medida_form.is_valid():
@@ -73,7 +73,7 @@ def producto_crear(request):
     )
 
 
-@login_required
+@staff_member_required
 def producto_editar(request, pk):
     producto = get_object_or_404(
         Producto,
@@ -89,6 +89,7 @@ def producto_editar(request, pk):
     if request.method == "POST":
         producto_form = ProductoForm(
             request.POST,
+            request.FILES,
             instance=producto,
         )
 
@@ -132,7 +133,7 @@ def producto_editar(request, pk):
     )
 
 
-@login_required
+@staff_member_required
 def producto_eliminar(request, pk):
     producto = get_object_or_404(
         Producto,
@@ -159,7 +160,7 @@ def producto_eliminar(request, pk):
             "producto": producto,
         },
     )
-@login_required
+@staff_member_required
 def material_lista(request):
     materiales = Material.objects.all()
 
@@ -181,7 +182,7 @@ def material_lista(request):
     )
 
 
-@login_required
+@staff_member_required
 def material_crear(request):
     if request.method == "POST":
         form = MaterialForm(request.POST)
@@ -210,7 +211,7 @@ def material_crear(request):
     )
 
 
-@login_required
+@staff_member_required
 def material_editar(request, pk):
     material = get_object_or_404(
         Material,
@@ -250,7 +251,7 @@ def material_editar(request, pk):
     )
 
 
-@login_required
+@staff_member_required
 def movimiento_crear(request):
     if request.method == "POST":
         form = MovimientoMaterialForm(request.POST)
@@ -298,7 +299,7 @@ def movimiento_crear(request):
     )
 
 
-@login_required
+@staff_member_required
 def movimiento_historial(request):
     movimientos = (
         MovimientoInventario.objects

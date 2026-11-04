@@ -1,8 +1,38 @@
+import os
+from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.conf import settings
+from PIL import Image, UnidentifiedImageError
+
+from django.core.validators import FileExtensionValidator
+
+
+def validar_imagen_producto(archivo):
+    """Valida tamaño máximo (5 MB) y formato de la fotografía."""
+    tamano_maximo = 5 * 1024 * 1024
+    if archivo.size > tamano_maximo:
+        raise ValidationError(
+            f"La imagen supera el límite permitido de 5 MB "
+            f"({archivo.size / (1024 * 1024):.1f} MB)."
+        )
+
+    ext = os.path.splitext(archivo.name)[1].lower()
+    if ext not in [".jpg", ".jpeg", ".png", ".webp"]:
+        raise ValidationError(
+            f"Formato no válido ({ext}). Use JPG, JPEG, PNG o WEBP."
+        )
+    try:
+        archivo.seek(0)
+        imagen = Image.open(archivo)
+        imagen.verify()
+        archivo.seek(0)
+    except (UnidentifiedImageError, OSError, ValueError):
+        raise ValidationError("El archivo no contiene una imagen válida.")
+
 
 class Categoria(models.Model):
+
     nombre = models.CharField(
         max_length=100,
         unique=True,
@@ -43,6 +73,12 @@ class Producto(models.Model):
     descripcion = models.TextField(
         blank=True,
         verbose_name="Descripción",
+    )
+    imagen = models.ImageField(
+        upload_to="productos/",
+        blank=True,
+        validators=[validar_imagen_producto, FileExtensionValidator(["jpg", "jpeg", "png", "webp"])],
+        verbose_name="Fotografía",
     )
     categoria = models.ForeignKey(
         Categoria,

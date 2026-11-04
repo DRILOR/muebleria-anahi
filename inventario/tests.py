@@ -1,7 +1,13 @@
 from decimal import Decimal
+from io import BytesIO, StringIO
+from tempfile import TemporaryDirectory
+from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
+from django.core.files.base import ContentFile
 from django.core.exceptions import ValidationError
+from django.core.management import call_command
+from django.core.management.base import CommandError
 from django.test import TestCase
 from django.urls import reverse
 
@@ -13,6 +19,8 @@ from .models import (
     Producto,
 )
 from .services import registrar_movimiento
+from .management.commands import cargar_imagenes_demo
+from PIL import Image
 
 
 class InventarioModelTests(TestCase):
@@ -177,6 +185,7 @@ class ProductoViewTests(TestCase):
         self.user = get_user_model().objects.create_user(
             username="admin_test",
             password="Test12345!",
+            is_staff=True,
         )
 
         self.client.login(
@@ -325,6 +334,7 @@ class MaterialViewTests(TestCase):
         self.user = get_user_model().objects.create_user(
             username="material_test",
             password="Test12345!",
+            is_staff=True,
         )
 
         self.client.login(
@@ -450,3 +460,99 @@ class MaterialViewTests(TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Stock insuficiente")
+
+
+class CargarDemoCommandTests(TestCase):
+    def test_cargar_demo_dry_run_no_modifica_db(self):
+        from io import StringIO
+        from django.core.management import call_command
+        from compras.models import Compra
+        from ventas.models import Venta
+
+        out = StringIO()
+        call_command("cargar_demo", dry_run=True, stdout=out)
+        salida = out.getvalue()
+        self.assertIn("MODO SIMULACIÓN", salida)
+        self.assertIn("RESUMEN DE REGISTROS", salida)
+        self.assertEqual(Producto.objects.count(), 0)
+        self.assertEqual(Compra.objects.count(), 0)
+        self.assertEqual(Venta.objects.count(), 0)
+
+    def test_cargar_demo_ejecucion_real_e_idempotencia(self):
+        from io import StringIO
+        from django.core.management import call_command
+        from compras.models import Compra, Proveedor
+        from ventas.models import Cliente, Venta
+
+        out1 = StringIO()
+        call_command("cargar_demo", stdout=out1)
+        self.assertIn("completada y guardada con éxito", out1.getvalue())
+
+
+        self.assertGreaterEqual(Producto.objects.count(), 35)
+        self.assertGreaterEqual(Material.objects.count(), 30)
+        self.assertEqual(Proveedor.objects.count(), 12)
+        self.assertEqual(Cliente.objects.count(), 40)
+        self.assertEqual(Compra.objects.count(), 45)
+        self.assertEqual(Venta.objects.count(), 100)
+        self.assertEqual(Venta.objects.filter(estado=Venta.ESTADO_ANULADA).count(), 6)
+
+        # Probar que AnahiBot y reportes responden con estos datos
+        from anahibot.services import responder_mensaje
+        user = get_user_model().objects.create_user(username="admin_test", is_staff=True)
+        res_ventas = responder_mensaje("ventas de este mes", usuario=user)
+        self.assertIn("ventas", res_ventas["respuesta"].lower())
+
+        # Probar idempotencia: la segunda ejecución no duplica compras ni ventas.
+        out2 = StringIO()
+        call_command("cargar_demo", stdout=out2)
+        self.assertEqual(Compra.objects.count(), 45)
+        self.assertEqual(Venta.objects.count(), 100)
+
+
+class CargarImagenesDemoCommandTests(TestCase):
+    def setUp(self):
+        self.categoria = Categoria.objects.create(nombre="Imágenes demostrativas")
+
+    def imagen_png(self):
+        buffer = BytesIO()
+        Image.new("RGB", (40, 30), "#806040").save(buffer, format="PNG")
+        return buffer.getvalue()
+
+    def test_asocia_por_codigo_optimiza_webp_y_no_reemplaza_fotografia_existente(self):
+        with TemporaryDirectory() as media_dir, self.settings(MEDIA_ROOT=media_dir):
+            nueva = Producto.objects.create(codigo="PRD-DOR-001", nombre="Cama", categoria=self.categoria, precio=100)
+            existente = Producto.objects.create(codigo="PRD-DOR-002", nombre="Ropero", categoria=self.categoria, precio=200)
+            existente.imagen.save("foto-propia.png", ContentFile(self.imagen_png()), save=True)
+            nombre_original = existente.imagen.name
+            original_bytes = existente.imagen.read()
+            with patch.object(cargar_imagenes_demo, "PRODUCT_IMAGES", {"PRD-DOR-001": "fuente", "PRD-DOR-002": "fuente"}), patch.object(cargar_imagenes_demo, "IMAGE_SOURCES", {"fuente": ("https://images.unsplash.com/photo-demo", "Autora", "https://unsplash.com/photos/demo")}), patch.object(cargar_imagenes_demo, "urlopen", return_value=BytesIO(self.imagen_png())) as urlopen_mock:
+                call_command("cargar_imagenes_demo")
+                nueva.refresh_from_db()
+                existente.refresh_from_db()
+                self.assertTrue(nueva.imagen.name.endswith(".webp"))
+                with Image.open(nueva.imagen.path) as optimizada:
+                    self.assertEqual(optimizada.format, "WEBP")
+                self.assertEqual(existente.imagen.name, nombre_original)
+                self.assertEqual(existente.imagen.read(), original_bytes)
+                self.assertEqual(urlopen_mock.call_count, 1)
+
+    def test_simulacion_y_codigos_desconocidos_no_descargan_ni_modifican(self):
+        producto = Producto.objects.create(codigo="PRD-DOR-001", nombre="Cama", categoria=self.categoria, precio=100)
+        with patch.object(cargar_imagenes_demo, "PRODUCT_IMAGES", {"PRD-DOR-001": None, "PRD-XXX-999": "fuente"}), patch.object(cargar_imagenes_demo, "urlopen") as urlopen_mock:
+            salida = StringIO()
+            call_command("cargar_imagenes_demo", dry_run=True, stdout=salida)
+            self.assertIn("Simulación completa", salida.getvalue())
+            urlopen_mock.assert_not_called()
+        producto.refresh_from_db()
+        self.assertFalse(producto.imagen)
+
+    def test_error_de_descarga_no_crea_imagen(self):
+        from urllib.error import URLError
+
+        producto = Producto.objects.create(codigo="PRD-DOR-001", nombre="Cama", categoria=self.categoria, precio=100)
+        with patch.object(cargar_imagenes_demo, "PRODUCT_IMAGES", {"PRD-DOR-001": "fuente"}), patch.object(cargar_imagenes_demo, "IMAGE_SOURCES", {"fuente": ("https://images.unsplash.com/photo-demo", "Autora", "https://unsplash.com/photos/demo")}), patch.object(cargar_imagenes_demo, "urlopen", side_effect=URLError("sin conexión")):
+            with self.assertRaises(CommandError):
+                call_command("cargar_imagenes_demo")
+        producto.refresh_from_db()
+        self.assertFalse(producto.imagen)

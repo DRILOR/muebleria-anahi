@@ -16,6 +16,14 @@ class Cliente(models.Model):
         max_length=150,
         verbose_name="Nombre completo",
     )
+    usuario = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="perfil_cliente",
+        verbose_name="Cuenta de acceso",
+    )
     nit = models.CharField(
         max_length=30,
         blank=True,
@@ -328,3 +336,50 @@ class MovimientoProducto(models.Model):
 
     def __str__(self):
         return f"{self.tipo} - {self.producto} - {self.cantidad}"
+
+
+class PedidoCliente(models.Model):
+    PENDIENTE = "PENDIENTE"
+    CONFIRMADO = "CONFIRMADO"
+    ENTREGADO = "ENTREGADO"
+    CANCELADO = "CANCELADO"
+    ESTADOS = [(PENDIENTE, "Pendiente"), (CONFIRMADO, "Confirmado"),
+               (ENTREGADO, "Entregado"), (CANCELADO, "Cancelado")]
+
+    numero = models.CharField(max_length=20, unique=True, null=True, blank=True)
+    cliente = models.ForeignKey(Cliente, on_delete=models.PROTECT, related_name="pedidos")
+    estado = models.CharField(max_length=12, choices=ESTADOS, default=PENDIENTE)
+    total = models.DecimalField(max_digits=14, decimal_places=2, default=0)
+    venta = models.OneToOneField(Venta, null=True, blank=True, on_delete=models.PROTECT,
+                                 related_name="pedido_cliente")
+    telefono_contacto = models.CharField(max_length=30, blank=True)
+    direccion_entrega = models.CharField(max_length=250, blank=True)
+    creado_en = models.DateTimeField(auto_now_add=True)
+    actualizado_en = models.DateTimeField(auto_now=True)
+    cambiado_por = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True,
+                                     on_delete=models.SET_NULL, related_name="pedidos_gestionados")
+
+    class Meta:
+        ordering = ["-creado_en", "-pk"]
+        verbose_name = "Pedido de cliente"
+        verbose_name_plural = "Pedidos de clientes"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if not self.numero:
+            self.numero = f"PED-{self.pk:06d}"
+            type(self).objects.filter(pk=self.pk).update(numero=self.numero)
+
+    def __str__(self):
+        return self.numero or f"Pedido #{self.pk}"
+
+
+class DetallePedido(models.Model):
+    pedido = models.ForeignKey(PedidoCliente, on_delete=models.CASCADE, related_name="detalles")
+    producto = models.ForeignKey("inventario.Producto", on_delete=models.PROTECT, related_name="detalles_pedido")
+    cantidad = models.PositiveIntegerField(validators=[MinValueValidator(1)])
+    precio_unitario = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(0)])
+    subtotal = models.DecimalField(max_digits=14, decimal_places=2, validators=[MinValueValidator(0)])
+
+    class Meta:
+        ordering = ["pk"]

@@ -1,5 +1,5 @@
-﻿from django.contrib import messages
-from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import (
     get_object_or_404,
     redirect,
@@ -15,7 +15,7 @@ from .models import Compra, Proveedor
 from .services import registrar_compra
 
 
-@login_required
+@staff_member_required
 def proveedor_lista(request):
     proveedores = Proveedor.objects.all()
 
@@ -26,7 +26,7 @@ def proveedor_lista(request):
     )
 
 
-@login_required
+@staff_member_required
 def proveedor_crear(request):
     if request.method == "POST":
         form = ProveedorForm(request.POST)
@@ -55,7 +55,7 @@ def proveedor_crear(request):
     )
 
 
-@login_required
+@staff_member_required
 def proveedor_editar(request, pk):
     proveedor = get_object_or_404(
         Proveedor,
@@ -94,7 +94,7 @@ def proveedor_editar(request, pk):
     )
 
 
-@login_required
+@staff_member_required
 def compra_lista(request):
     compras = (
         Compra.objects
@@ -109,7 +109,7 @@ def compra_lista(request):
     )
 
 
-@login_required
+@staff_member_required
 def compra_crear(request):
     if request.method == "POST":
         form = CompraForm(request.POST)

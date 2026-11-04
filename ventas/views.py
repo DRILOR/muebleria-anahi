@@ -2,7 +2,6 @@ from decimal import Decimal
 
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
-from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db.models import (
@@ -24,8 +23,8 @@ from .forms import (
     DetalleVentaFormSet,
     VentaForm,
 )
-from .models import Cliente, Ingreso, Venta
-from .services import anular_venta, registrar_venta
+from .models import Cliente, Ingreso, PedidoCliente, Venta
+from .services import anular_venta, cambiar_estado_pedido, registrar_venta
 from .utils import rango_fechas
 
 
@@ -40,7 +39,7 @@ def _paginar(request, queryset, por_pagina=15):
     return paginator.get_page(request.GET.get("page"))
 
 
-@login_required
+@staff_member_required
 def cliente_lista(request):
     busqueda = request.GET.get("q", "").strip()
     estado = request.GET.get("estado", "activos")
@@ -91,7 +90,7 @@ def cliente_lista(request):
     )
 
 
-@login_required
+@staff_member_required
 def cliente_crear(request):
     if request.method == "POST":
         form = ClienteForm(request.POST)
@@ -119,7 +118,7 @@ def cliente_crear(request):
     )
 
 
-@login_required
+@staff_member_required
 def cliente_editar(request, pk):
     cliente = get_object_or_404(Cliente, pk=pk)
 
@@ -153,7 +152,7 @@ def cliente_editar(request, pk):
     )
 
 
-@login_required
+@staff_member_required
 def cliente_eliminar(request, pk):
     cliente = get_object_or_404(Cliente, pk=pk)
 
@@ -182,7 +181,7 @@ def cliente_eliminar(request, pk):
     )
 
 
-@login_required
+@staff_member_required
 def cliente_detalle(request, pk):
     cliente = get_object_or_404(Cliente, pk=pk)
 
@@ -211,7 +210,7 @@ def cliente_detalle(request, pk):
     )
 
 
-@login_required
+@staff_member_required
 def venta_lista(request):
     busqueda = request.GET.get("q", "").strip()
     estado = request.GET.get("estado", "").strip()
@@ -270,7 +269,7 @@ def venta_lista(request):
     )
 
 
-@login_required
+@staff_member_required
 def venta_crear(request):
     if request.method == "POST":
         form = VentaForm(request.POST)
@@ -370,7 +369,7 @@ def _obtener_venta(pk):
     )
 
 
-@login_required
+@staff_member_required
 def venta_detalle(request, pk):
     return render(
         request,
@@ -379,7 +378,7 @@ def venta_detalle(request, pk):
     )
 
 
-@login_required
+@staff_member_required
 def venta_comprobante(request, pk):
     return render(
         request,
@@ -388,7 +387,7 @@ def venta_comprobante(request, pk):
     )
 
 
-@login_required
+@staff_member_required
 def venta_comprobante_pdf(request, pk):
     venta = _obtener_venta(pk)
     contenido = generar_comprobante_pdf(venta)
@@ -437,3 +436,30 @@ def venta_anular(request, pk):
         "ventas/venta_confirmar_anular.html",
         {"venta": venta},
     )
+
+
+@staff_member_required
+def pedido_lista(request):
+    pedidos = PedidoCliente.objects.select_related("cliente", "venta", "cambiado_por").prefetch_related("detalles__producto")
+    estado = request.GET.get("estado", "")
+    if estado in dict(PedidoCliente.ESTADOS):
+        pedidos = pedidos.filter(estado=estado)
+    return render(request, "ventas/pedido_lista.html", {"pedidos": pedidos[:100], "estado": estado,
+                  "estados": PedidoCliente.ESTADOS})
+
+
+@staff_member_required
+def pedido_cambiar_estado(request, pk):
+    if request.method != "POST":
+        return redirect("ventas:pedido_lista")
+    pedido = get_object_or_404(PedidoCliente, pk=pk)
+    estado = request.POST.get("estado", "")
+    try:
+        resultado = cambiar_estado_pedido(pedido, estado, usuario=request.user)
+        if estado == PedidoCliente.CONFIRMADO:
+            messages.success(request, f"Pedido convertido en venta {resultado.numero}.")
+        else:
+            messages.success(request, f"Pedido {pedido.numero} actualizado.")
+    except ValidationError as error:
+        messages.error(request, error.messages[0])
+    return redirect("ventas:pedido_lista")

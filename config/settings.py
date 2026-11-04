@@ -28,6 +28,16 @@ CSRF_TRUSTED_ORIGINS = [
     for origin in os.getenv("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",")
     if origin.strip()
 ]
+if DEBUG:
+    # Keep the two local development ports usable while production origins
+    # remain explicitly configured through the environment.
+    CSRF_TRUSTED_ORIGINS = list(dict.fromkeys([
+        *CSRF_TRUSTED_ORIGINS,
+        "http://127.0.0.1:8000",
+        "http://localhost:8000",
+        "http://127.0.0.1:8001",
+        "http://localhost:8001",
+    ]))
 
 # Configuración de seguridad para despliegue / HTTPS
 SECURE_SSL_REDIRECT = os.getenv("DJANGO_SECURE_SSL_REDIRECT", "False").lower() == "true"
@@ -56,6 +66,7 @@ INSTALLED_APPS = [
     "ventas",
     "reportes",
     "anahibot",
+    "catalogo",
 ]
 
 MIDDLEWARE = [
@@ -73,9 +84,12 @@ MIDDLEWARE = [
 ROOT_URLCONF = "config.urls"
 
 
-LOGIN_URL = "/admin/login/"
-LOGIN_REDIRECT_URL = "/"
-LOGOUT_REDIRECT_URL = "/admin/login/"
+LOGIN_URL = "/clientes/login/"
+LOGIN_REDIRECT_URL = "/catalogo/"
+LOGOUT_REDIRECT_URL = "/catalogo/"
+CSRF_FAILURE_VIEW = "config.views.csrf_failure"
+CSRF_COOKIE_SAMESITE = "Lax"
+SESSION_COOKIE_SAMESITE = "Lax"
 
 
 TEMPLATES = [
@@ -155,7 +169,7 @@ STATICFILES_DIRS = [
 
 STATIC_ROOT = BASE_DIR / "staticfiles"
 # Archivos cargados
-MEDIA_URL = "media/"
+MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 

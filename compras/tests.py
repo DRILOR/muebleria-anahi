@@ -96,6 +96,7 @@ class ProveedorViewTests(TestCase):
         self.user = get_user_model().objects.create_user(
             username="proveedor_test",
             password="Test12345!",
+            is_staff=True,
         )
 
         self.client.login(
@@ -147,6 +148,7 @@ class CompraViewTests(TestCase):
         self.user = get_user_model().objects.create_user(
             username="venta_test",
             password="Test12345!",
+            is_staff=True,
         )
 
         self.client.login(

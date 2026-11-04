@@ -25,6 +25,7 @@ class BaseVentaTestCase(TestCase):
         self.user = get_user_model().objects.create_user(
             username="ventas_test",
             password="Test12345!",
+            is_staff=True,
         )
         self.staff = get_user_model().objects.create_user(
             username="staff_test",
@@ -700,6 +701,11 @@ class VentaViewTests(BaseVentaTestCase):
 
     def test_usuario_no_staff_no_puede_anular(self):
         venta = self.crear_venta()
+        usuario = get_user_model().objects.create_user(
+            username="usuario_sin_permisos",
+            password="Test12345!",
+        )
+        self.client.force_login(usuario)
 
         response = self.client.get(
             reverse("ventas:venta_anular", args=[venta.pk])

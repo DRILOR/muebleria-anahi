@@ -1,12 +1,18 @@
 from django.urls import path
 
 from . import views
+from . import client_views as views_registro
 
 
 app_name = "ventas"
 
 
 urlpatterns = [
+    path("administracion/pedidos-clientes/", views.pedido_lista, name="pedido_lista"),
+    path("administracion/pedidos-clientes/<int:pk>/estado/", views.pedido_cambiar_estado, name="pedido_cambiar_estado"),
+    path("clientes/registro/", views_registro.registro, name="cliente_registro"),
+    path("clientes/login/", views_registro.acceso, name="cliente_login"),
+    path("clientes/logout/", views_registro.salir, name="cliente_logout"),
     path(
         "clientes/",
         views.cliente_lista,

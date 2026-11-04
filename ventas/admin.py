@@ -5,6 +5,8 @@ from .models import (
     DetalleVenta,
     Ingreso,
     MovimientoProducto,
+    PedidoCliente,
+    DetallePedido,
     Venta,
 )
 
@@ -103,3 +105,31 @@ class MovimientoProductoAdmin(admin.ModelAdmin):
         "producto__nombre",
         "referencia",
     )
+
+
+class DetallePedidoInline(admin.TabularInline):
+    model = DetallePedido
+    extra = 0
+    readonly_fields = ("producto", "cantidad", "precio_unitario", "subtotal")
+    can_delete = False
+
+
+@admin.register(PedidoCliente)
+class PedidoClienteAdmin(admin.ModelAdmin):
+    list_display = ("numero", "creado_en", "cliente", "total", "estado", "venta")
+    list_filter = ("estado", "creado_en")
+    search_fields = ("numero", "cliente__nombre", "cliente__email", "cliente__telefono")
+    readonly_fields = ("numero", "cliente", "total", "venta", "creado_en", "actualizado_en", "cambiado_por")
+    inlines = [DetallePedidoInline]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_view_permission(self, request, obj=None):
+        return request.user.is_active and request.user.is_staff
