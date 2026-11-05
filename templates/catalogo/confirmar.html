@@ -1,1 +1,118 @@
-{% extends 'catalogo/base.html' %}{% block title %}Revisar pedido | Mueblería Anahí{% endblock %}{% block content %}<section class="account account-wide"><a class="back" href="{% url 'catalogo:carrito' %}">← Volver al carrito</a><p class="eyebrow">ÚLTIMO PASO</p><h1>Revisa tu pedido</h1>{% if lineas %}<div class="order-summary">{% for linea in lineas %}<div><span>{{ linea.cantidad }} × {{ linea.producto.nombre }}</span><strong>Bs {{ linea.subtotal|floatformat:2 }}</strong></div>{% endfor %}<div class="order-total"><span>Total estimado</span><strong>Bs {{ total|floatformat:2 }}</strong></div></div><form method="post" class="account-form">{% csrf_token %}<p>El pedido se registrará como pendiente. No se realizará ningún cobro en línea.</p><label>Teléfono de contacto<input name="telefono" value="{{ cliente.telefono }}" maxlength="30"></label><label>Dirección de entrega<input name="direccion" value="{{ cliente.direccion }}" maxlength="250"></label><button class="button button-dark" type="submit">Confirmar pedido</button></form>{% else %}<p>El carrito está vacío.</p><a class="button button-dark" href="{% url 'catalogo:lista' %}">Volver al catálogo</a>{% endif %}</section>{% endblock %}
+{% extends 'catalogo/base.html' %}
+
+{% block title %}Revisar pedido | Mueblería Anahí{% endblock %}
+
+{% block content %}
+<section class="checkout-page">
+    <div class="checkout-heading">
+        <div>
+            <a
+                class="checkout-back"
+                href="{% url 'catalogo:carrito' %}"
+            >
+                ← Volver al carrito
+            </a>
+
+            <p class="checkout-kicker">ÚLTIMO PASO</p>
+            <h1>Revisa tu pedido</h1>
+            <p>
+                Confirma tus datos de contacto antes de enviarlo.
+            </p>
+        </div>
+
+        <div class="checkout-steps">
+            <span>1</span>
+            <div class="completed"></div>
+            <span class="active">2</span>
+            <div></div>
+            <span>3</span>
+        </div>
+    </div>
+
+    {% if lineas %}
+        <div class="confirm-layout">
+            <div class="confirm-form-card">
+                <p class="summary-kicker">DATOS DE CONTACTO</p>
+                <h2>¿Dónde podemos contactarte?</h2>
+
+                <p class="confirm-description">
+                    No se realizará ningún cobro en línea.
+                    Nuestro equipo revisará el pedido antes de confirmarlo.
+                </p>
+
+                <form method="post" class="confirm-form">
+                    {% csrf_token %}
+
+                    <label>
+                        <span>Teléfono de contacto</span>
+                        <input
+                            name="telefono"
+                            value="{{ cliente.telefono }}"
+                            maxlength="30"
+                            placeholder="Ej.: 70000000"
+                        >
+                    </label>
+
+                    <label>
+                        <span>Dirección de entrega</span>
+                        <input
+                            name="direccion"
+                            value="{{ cliente.direccion }}"
+                            maxlength="250"
+                            placeholder="Zona, calle, número..."
+                        >
+                    </label>
+
+                    <button
+                        class="button button-dark confirm-button"
+                        type="submit"
+                    >
+                        Confirmar pedido
+                    </button>
+                </form>
+            </div>
+
+            <aside class="cart-summary">
+                <p class="summary-kicker">RESUMEN DEL PEDIDO</p>
+                <h2>Productos seleccionados</h2>
+
+                <div class="confirm-lines">
+                    {% for linea in lineas %}
+                        <div>
+                            <span>
+                                {{ linea.cantidad }} ×
+                                {{ linea.producto.nombre }}
+                            </span>
+                            <strong>
+                                Bs {{ linea.subtotal|floatformat:2 }}
+                            </strong>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div class="summary-total">
+                    <span>Total estimado</span>
+                    <strong>Bs {{ total|floatformat:2 }}</strong>
+                </div>
+
+                <p class="summary-note">
+                    El pedido se registrará inicialmente como
+                    <strong>pendiente</strong>.
+                </p>
+            </aside>
+        </div>
+    {% else %}
+        <div class="checkout-empty">
+            <h2>El carrito está vacío</h2>
+            <p>No hay productos para confirmar.</p>
+
+            <a
+                class="button button-dark"
+                href="{% url 'catalogo:lista' %}"
+            >
+                Volver al catálogo
+            </a>
+        </div>
+    {% endif %}
+</section>
+{% endblock %}

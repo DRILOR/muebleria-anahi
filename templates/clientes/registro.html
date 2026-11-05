@@ -1,1 +1,92 @@
-{% extends 'catalogo/base.html' %}{% block title %}Crear cuenta | Mueblería Anahí{% endblock %}{% block content %}<section class="account"><a class="back" href="{% url 'catalogo:lista' %}">← Catálogo</a><h1>Crear cuenta</h1><p>Completa tus datos para registrarte.</p><form method="post" action="{% url 'ventas:cliente_registro' %}" class="account-form">{% csrf_token %}<input type="hidden" name="next" value="{{ next }}">{% if form.non_field_errors %}<div class="form-errors">{{ form.non_field_errors }}</div>{% endif %}{% for field in form %}<label>{{ field.label }}{{ field }}{% for error in field.errors %}<small class="field-error">{{ error }}</small>{% endfor %}{% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}</label>{% endfor %}<button class="button button-dark" type="submit">Crear cuenta</button></form><p>¿Ya tienes cuenta? <a href="{% url 'ventas:cliente_login' %}{% if next %}?next={{ next|urlencode }}{% endif %}">Inicia sesión</a></p></section>{% endblock %}
+{% extends 'catalogo/base.html' %}
+
+{% block title %}Crear cuenta | Mueblería Anahí{% endblock %}
+
+{% block content %}
+<section class="customer-auth customer-auth-register">
+    <div class="customer-auth-panel customer-auth-intro">
+        <span class="auth-kicker">NUEVO CLIENTE</span>
+
+        <h1>Crea tu cuenta</h1>
+
+        <p>
+            Regístrate para realizar pedidos directamente desde nuestro
+            catálogo digital.
+        </p>
+
+        <div class="auth-benefits">
+            <div>
+                <span>01</span>
+                <p><strong>Catálogo disponible</strong><br>Explora muebles, precios y disponibilidad.</p>
+            </div>
+
+            <div>
+                <span>02</span>
+                <p><strong>Carrito y pedidos</strong><br>Selecciona productos y confirma tu solicitud.</p>
+            </div>
+
+            <div>
+                <span>03</span>
+                <p><strong>AnahíBot</strong><br>Consulta productos desde tu área de cliente.</p>
+            </div>
+        </div>
+
+        <a class="auth-back" href="{% url 'catalogo:lista' %}">
+            ← Volver al catálogo
+        </a>
+    </div>
+
+    <div class="customer-auth-panel customer-auth-form-panel">
+        <div class="auth-form-heading">
+            <span class="brand-mini">A</span>
+            <div>
+                <h2>Crear cuenta</h2>
+                <p>Completa tus datos personales.</p>
+            </div>
+        </div>
+
+        <form
+            method="post"
+            action="{% url 'ventas:cliente_registro' %}"
+            class="account-form auth-form"
+        >
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ next }}">
+
+            {% if form.non_field_errors %}
+                <div class="form-errors">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            {% for field in form %}
+                <label>
+                    <span>{{ field.label }}</span>
+                    {{ field }}
+
+                    {% for error in field.errors %}
+                        <small class="field-error">{{ error }}</small>
+                    {% endfor %}
+
+                    {% if field.help_text %}
+                        <small class="field-help">
+                            {{ field.help_text }}
+                        </small>
+                    {% endif %}
+                </label>
+            {% endfor %}
+
+            <button class="button button-dark auth-submit" type="submit">
+                Crear mi cuenta
+            </button>
+        </form>
+
+        <p class="auth-switch">
+            ¿Ya tienes una cuenta?
+            <a href="{% url 'ventas:cliente_login' %}{% if next %}?next={{ next|urlencode }}{% endif %}">
+                Iniciar sesión
+            </a>
+        </p>
+    </div>
+</section>
+{% endblock %}

@@ -1,1 +1,86 @@
-{% extends 'catalogo/base.html' %}{% block title %}Ingresar | Mueblería Anahí{% endblock %}{% block content %}<section class="account"><a class="back" href="{% url 'catalogo:lista' %}">← Catálogo</a><h1>Bienvenido de nuevo</h1><p>Ingresa a tu cuenta de cliente.</p><form method="post" action="{% url 'ventas:cliente_login' %}" class="account-form">{% csrf_token %}<input type="hidden" name="next" value="{{ next }}">{% if form.non_field_errors %}<div class="form-errors">{{ form.non_field_errors }}</div>{% endif %}{% for field in form %}<label>{{ field.label }}{{ field }}{% for error in field.errors %}<small class="field-error">{{ error }}</small>{% endfor %}</label>{% endfor %}<button class="button button-dark" type="submit">Iniciar sesión</button></form><p>¿Aún no tienes cuenta? <a href="{% url 'ventas:cliente_registro' %}{% if next %}?next={{ next|urlencode }}{% endif %}">Regístrate</a></p></section>{% endblock %}
+{% extends 'catalogo/base.html' %}
+
+{% block title %}Ingresar | Mueblería Anahí{% endblock %}
+
+{% block content %}
+<section class="customer-auth">
+    <div class="customer-auth-panel customer-auth-intro">
+        <span class="auth-kicker">MI CUENTA</span>
+
+        <h1>Bienvenido de nuevo</h1>
+
+        <p>
+            Ingresa a tu cuenta para realizar pedidos, revisar tu carrito
+            y consultar productos con AnahíBot.
+        </p>
+
+        <div class="auth-benefits">
+            <div>
+                <span>01</span>
+                <p><strong>Compra más rápido</strong><br>Confirma tus pedidos desde el catálogo.</p>
+            </div>
+
+            <div>
+                <span>02</span>
+                <p><strong>Consulta disponibilidad</strong><br>Pregunta precios y stock a AnahíBot.</p>
+            </div>
+
+            <div>
+                <span>03</span>
+                <p><strong>Experiencia personalizada</strong><br>Accede con tu propia cuenta de cliente.</p>
+            </div>
+        </div>
+
+        <a class="auth-back" href="{% url 'catalogo:lista' %}">
+            ← Volver al catálogo
+        </a>
+    </div>
+
+    <div class="customer-auth-panel customer-auth-form-panel">
+        <div class="auth-form-heading">
+            <span class="brand-mini">A</span>
+            <div>
+                <h2>Iniciar sesión</h2>
+                <p>Introduce tus credenciales de cliente.</p>
+            </div>
+        </div>
+
+        <form
+            method="post"
+            action="{% url 'ventas:cliente_login' %}"
+            class="account-form auth-form"
+        >
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ next }}">
+
+            {% if form.non_field_errors %}
+                <div class="form-errors">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            {% for field in form %}
+                <label>
+                    <span>{{ field.label }}</span>
+                    {{ field }}
+
+                    {% for error in field.errors %}
+                        <small class="field-error">{{ error }}</small>
+                    {% endfor %}
+                </label>
+            {% endfor %}
+
+            <button class="button button-dark auth-submit" type="submit">
+                Iniciar sesión
+            </button>
+        </form>
+
+        <p class="auth-switch">
+            ¿Aún no tienes cuenta?
+            <a href="{% url 'ventas:cliente_registro' %}{% if next %}?next={{ next|urlencode }}{% endif %}">
+                Crear una cuenta
+            </a>
+        </p>
+    </div>
+</section>
+{% endblock %}

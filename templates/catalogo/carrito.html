@@ -1,1 +1,159 @@
-{% extends 'catalogo/base.html' %}{% block title %}Tu carrito | Mueblería Anahí{% endblock %}{% block content %}<section class="account account-wide"><a class="back" href="{% url 'catalogo:lista' %}">← Seguir comprando</a><p class="eyebrow">TU SELECCIÓN</p><h1>Carrito de compras</h1>{% if lineas %}<div class="cart-table">{% for linea in lineas %}<article class="cart-row"><div><h2>{{ linea.producto.nombre }}</h2><p>{{ linea.producto.categoria.nombre }} · Bs {{ linea.producto.precio|floatformat:2 }} c/u</p></div><form method="post" action="{% url 'catalogo:carrito_actualizar' linea.producto.pk %}" class="quantity-form">{% csrf_token %}<label>Cantidad<input type="number" name="cantidad" value="{{ linea.cantidad }}" min="0" max="{{ linea.producto.stock }}"></label><button class="button button-light">Actualizar</button></form><strong>Bs {{ linea.subtotal|floatformat:2 }}</strong></article>{% endfor %}</div><div class="cart-total"><span>Total estimado</span><strong>Bs {{ total|floatformat:2 }}</strong></div><p class="cart-note">El pedido quedará pendiente de revisión. El stock se valida nuevamente al confirmar.</p><a class="button button-light" href="{% url 'catalogo:lista' %}">Continuar comprando</a><a class="button button-dark" href="{% url 'catalogo:confirmar_carrito' %}">Continuar con el pedido</a><form class="inline clear-cart" method="post" action="{% url 'catalogo:carrito_vaciar' %}">{% csrf_token %}<button>Vaciar carrito</button></form>{% else %}<div class="empty"><h3>Tu carrito está vacío</h3><p>Explora el catálogo y agrega tus muebles favoritos.</p><a class="button button-dark" href="{% url 'catalogo:lista' %}">Explorar catálogo</a></div>{% endif %}</section>{% endblock %}
+{% extends 'catalogo/base.html' %}
+{% load static %}
+
+{% block title %}Tu carrito | Mueblería Anahí{% endblock %}
+
+{% block content %}
+<section class="checkout-page">
+    <div class="checkout-heading">
+        <div>
+            <a class="checkout-back" href="{% url 'catalogo:lista' %}">
+                ← Seguir comprando
+            </a>
+            <p class="checkout-kicker">TU SELECCIÓN</p>
+            <h1>Carrito de compras</h1>
+            <p>Revisa tus muebles antes de continuar con el pedido.</p>
+        </div>
+
+        <div class="checkout-steps">
+            <span class="active">1</span>
+            <div></div>
+            <span>2</span>
+            <div></div>
+            <span>3</span>
+        </div>
+    </div>
+
+    {% if lineas %}
+        <div class="cart-layout">
+            <div class="cart-products">
+                {% for linea in lineas %}
+                    <article class="cart-product">
+                        <div class="cart-product-image">
+                            {% if linea.producto.imagen %}
+                                <img
+                                    src="{{ linea.producto.imagen.url }}"
+                                    alt="{{ linea.producto.nombre }}"
+                                >
+                            {% else %}
+                                <img
+                                    src="{% static 'img/producto-placeholder.svg' %}"
+                                    alt="{{ linea.producto.nombre }}"
+                                >
+                            {% endif %}
+                        </div>
+
+                        <div class="cart-product-copy">
+                            <span class="cart-category">
+                                {{ linea.producto.categoria.nombre }}
+                            </span>
+
+                            <h2>{{ linea.producto.nombre }}</h2>
+
+                            <p>
+                                Bs {{ linea.producto.precio|floatformat:2 }}
+                                por unidad
+                            </p>
+
+                            <form
+                                method="post"
+                                action="{% url 'catalogo:carrito_actualizar' linea.producto.pk %}"
+                                class="cart-quantity-form"
+                            >
+                                {% csrf_token %}
+
+                                <label>
+                                    Cantidad
+                                    <input
+                                        type="number"
+                                        name="cantidad"
+                                        value="{{ linea.cantidad }}"
+                                        min="0"
+                                        max="{{ linea.producto.stock }}"
+                                    >
+                                </label>
+
+                                <button
+                                    class="cart-update-button"
+                                    type="submit"
+                                >
+                                    Actualizar
+                                </button>
+                            </form>
+                        </div>
+
+                        <div class="cart-product-price">
+                            <span>Subtotal</span>
+                            <strong>
+                                Bs {{ linea.subtotal|floatformat:2 }}
+                            </strong>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+
+            <aside class="cart-summary">
+                <p class="summary-kicker">RESUMEN</p>
+                <h2>Tu pedido</h2>
+
+                <div class="summary-row">
+                    <span>Productos</span>
+                    <span>{{ carrito_cantidad }}</span>
+                </div>
+
+                <div class="summary-total">
+                    <span>Total estimado</span>
+                    <strong>Bs {{ total|floatformat:2 }}</strong>
+                </div>
+
+                <p class="summary-note">
+                    El pedido quedará pendiente de revisión.
+                    El stock será validado nuevamente al confirmar.
+                </p>
+
+                <a
+                    class="button button-dark summary-primary"
+                    href="{% url 'catalogo:confirmar_carrito' %}"
+                >
+                    Continuar con el pedido
+                </a>
+
+                <a
+                    class="summary-secondary"
+                    href="{% url 'catalogo:lista' %}"
+                >
+                    Seguir explorando
+                </a>
+
+                <form
+                    method="post"
+                    action="{% url 'catalogo:carrito_vaciar' %}"
+                    class="clear-cart-form"
+                >
+                    {% csrf_token %}
+                    <button type="submit">
+                        Vaciar carrito
+                    </button>
+                </form>
+            </aside>
+        </div>
+
+    {% else %}
+        <div class="checkout-empty">
+            <div class="empty-cart-icon">A</div>
+            <p class="checkout-kicker">TU CARRITO</p>
+            <h2>Aún no agregaste productos</h2>
+            <p>
+                Explora nuestro catálogo y selecciona los muebles
+                que deseas consultar o solicitar.
+            </p>
+            <a
+                class="button button-dark"
+                href="{% url 'catalogo:lista' %}"
+            >
+                Explorar catálogo
+            </a>
+        </div>
+    {% endif %}
+</section>
+{% endblock %}

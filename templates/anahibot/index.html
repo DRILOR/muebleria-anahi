@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "catalogo/base.html" %}
 {% load static %}
 
 {% block title %}
@@ -7,75 +7,105 @@ AnahíBot | Mueblería Anahí
 
 {% block content %}
 
-<div class="page-header">
-    <div>
-        <h2>AnahíBot</h2>
-        <p>
-            Asistente conversacional conectado a los datos reales de la
-            mueblería.
-        </p>
+<section class="bot-page">
+
+    <div class="bot-page-header">
+        <div>
+            <p class="eyebrow">ASISTENTE DE MUEBLERÍA ANAHÍ</p>
+
+            <h1>Hola, soy AnahíBot</h1>
+
+            <p>
+                Puedo ayudarte a consultar productos, precios,
+                disponibilidad y características utilizando
+                información registrada en nuestro sistema.
+            </p>
+        </div>
+
+        <div class="bot-status">
+            <span></span>
+            Datos en vivo - Disponible
+        </div>
     </div>
 
-    <span class="badge badge-neutral">Datos en vivo</span>
-</div>
+    <section class="customer-chat"
+             aria-label="Chat de AnahíBot">
 
-<section class="chat-shell card" aria-label="Chat de AnahíBot">
-    <div id="chat-mensajes"
-         class="chat-mensajes"
-         role="log"
-         aria-live="polite">
-        <div class="chat-message bot">
-            <span class="chat-author">AnahíBot</span>
-            <div class="chat-bubble">
-                ¡Hola! Soy AnahíBot. Consulto inventario, precios,
-                proveedores y ventas directamente de la base de datos.
-                No invento datos: si un registro no existe te lo digo y
-                si un valor está en cero también.
+        <div id="chat-mensajes"
+             class="chat-mensajes storefront-chat-messages"
+             role="log"
+             aria-live="polite">
+
+            <div class="chat-message bot">
+                <span class="chat-author">AnahíBot</span>
+
+                <div class="chat-bubble">
+                    ¡Hola! ¿En qué puedo ayudarte?
+
+                    Puedes preguntarme por nuestros muebles,
+                    precios, disponibilidad o productos que
+                    tenemos registrados.
+                </div>
             </div>
+
         </div>
-    </div>
 
-    <div id="chat-sugerencias" class="chat-sugerencias">
-        {% for sugerencia in sugerencias %}
-            <button type="button"
-                    class="chat-chip"
-                    data-sugerencia="{{ sugerencia }}">
-                {{ sugerencia }}
-            </button>
-        {% endfor %}
-    </div>
+        <div id="chat-sugerencias"
+             class="chat-sugerencias">
 
-    <form id="chat-form"
-          class="chat-form"
-          data-url="{% url 'anahibot:responder' %}"
-          autocomplete="off">
-        {% csrf_token %}
+            {% for sugerencia in sugerencias %}
+                <button type="button"
+                        class="chat-chip"
+                        data-sugerencia="{{ sugerencia }}">
+                    {{ sugerencia }}
+                </button>
+            {% endfor %}
 
-        <label class="chat-label" for="chat-input">
-            Escribe tu consulta
-        </label>
-
-        <div class="chat-input-row">
-            <textarea id="chat-input"
-                      name="mensaje"
-                      rows="1"
-                      maxlength="500"
-                      placeholder="Ej.: ¿Qué productos tienen stock bajo?"
-                      required></textarea>
-
-            <button type="submit"
-                    class="btn btn-primary"
-                    id="chat-enviar">
-                Enviar
-            </button>
         </div>
-    </form>
 
-    <p class="chat-note">
-        AnahíBot responde solo con información registrada en el sistema.
-        Las consultas de ventas y proveedores requieren permisos de
-        administración.
-    </p>
+        <form id="chat-form"
+              class="chat-form"
+              data-url="{% url 'anahibot:responder' %}"
+              autocomplete="off">
+
+            {% csrf_token %}
+
+            <label class="chat-label"
+                   for="chat-input">
+                ¿Qué deseas consultar?
+            </label>
+
+            <div class="chat-input-row">
+
+                <textarea id="chat-input"
+                          name="mensaje"
+                          rows="1"
+                          maxlength="500"
+                          placeholder="Ej.: ¿Qué muebles de dormitorio tienen disponibles?"
+                          required></textarea>
+
+                <button type="submit"
+                        class="button button-dark bot-send"
+                        id="chat-enviar">
+                    Enviar
+                </button>
+
+            </div>
+
+        </form>
+
+        <p class="chat-note">
+            Las respuestas utilizan información registrada
+            actualmente en Mueblería Anahí.
+        </p>
+
+    </section>
+
+    <a class="continue-link"
+       href="{% url 'catalogo:lista' %}">
+        ← Volver al catálogo
+    </a>
+
 </section>
 
 {% endblock %}
@@ -83,3 +113,4 @@ AnahíBot | Mueblería Anahí
 {% block extra_js %}
 <script src="{% static 'js/anahibot.js' %}" defer></script>
 {% endblock %}
+

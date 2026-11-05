@@ -218,24 +218,34 @@ def _sugerencias(usuario):
 
     producto = (
         Producto.objects
-        .filter(activo=True)
+        .filter(activo=True, stock__gt=0)
         .order_by("nombre")
         .first()
     )
 
     if producto:
-        sugerencias.append(f"¿Cuánto cuesta {producto.nombre}?")
+        sugerencias.append(
+            f"\u00bfCu\u00e1nto cuesta {producto.nombre}?"
+        )
 
-    sugerencias.extend(SUGERENCIAS_BASE)
-
-    if getattr(usuario, "is_staff", False):
+    if not getattr(usuario, "is_staff", False):
         sugerencias.extend(
             [
-                "¿Cuánto vendí este mes?",
-                "¿Qué productos se vendieron más?",
-                "Proveedores registrados",
+                "\u00bfQu\u00e9 productos hay disponibles?",
+                "\u00bfQu\u00e9 productos est\u00e1n agotados?",
+                "\u00bfQu\u00e9 puedes hacer?",
             ]
         )
+        return sugerencias[:5]
+
+    sugerencias.extend(SUGERENCIAS_BASE)
+    sugerencias.extend(
+        [
+            "\u00bfCu\u00e1nto vend\u00ed este mes?",
+            "\u00bfQu\u00e9 productos se vendieron m\u00e1s?",
+            "Proveedores registrados",
+        ]
+    )
 
     return sugerencias[:5]
 
@@ -1063,10 +1073,264 @@ def _es_ventas(texto):
     )
 
 
+
+def _detalle_producto_cliente(producto):
+    lineas = [
+        f"{producto.nombre} ({producto.codigo})",
+        f"Categor\u00eda: {producto.categoria.nombre}",
+        f"Precio: {formato_moneda(producto.precio)}",
+    ]
+
+    if producto.stock > 0:
+        lineas.append(
+            f"Disponibilidad: {producto.stock} unidad(es)."
+        )
+    else:
+        lineas.append(
+            "Disponibilidad: actualmente agotado."
+        )
+
+    if producto.descripcion:
+        lineas.append(producto.descripcion)
+
+    return "\n".join(lineas)
+
+
+def _lista_productos_cliente(usuario, disponibles=None):
+    productos = (
+        Producto.objects
+        .filter(activo=True)
+        .select_related("categoria")
+    )
+
+    if disponibles is True:
+        productos = productos.filter(stock__gt=0)
+        titulo = "Productos disponibles:"
+    elif disponibles is False:
+        productos = productos.filter(stock=0)
+        titulo = "Productos actualmente agotados:"
+    else:
+        titulo = "Productos del cat\u00e1logo:"
+
+    productos = productos.order_by("nombre")
+    total = productos.count()
+
+    if total == 0:
+        return _resultado(
+            "No encontr\u00e9 productos que coincidan con esa condici\u00f3n.",
+            "catalogo_cliente",
+            usuario,
+        )
+
+    lineas = [titulo]
+
+    for producto in productos[:10]:
+        estado = (
+            f"{producto.stock} unidad(es)"
+            if producto.stock > 0
+            else "Agotado"
+        )
+
+        lineas.append(
+            f"- {producto.nombre} \u00b7 "
+            f"{formato_moneda(producto.precio)} \u00b7 "
+            f"{estado}"
+        )
+
+    if total > 10:
+        lineas.append(
+            f"\u2026 y {total - 10} producto(s) m\u00e1s."
+        )
+
+    return _resultado(
+        "\n".join(lineas),
+        "catalogo_cliente",
+        usuario,
+    )
+
+
+def _respuesta_producto_cliente(texto, usuario):
+    productos = [
+        producto
+        for producto in _buscar_productos(texto)
+        if producto.activo
+    ]
+
+    if not productos:
+        return _resultado(
+            (
+                "No encontr\u00e9 un producto del cat\u00e1logo que "
+                "coincida con tu consulta. Prueba con otro nombre "
+                "o c\u00f3digo."
+            ),
+            "sin_resultados_cliente",
+            usuario,
+        )
+
+    if len(productos) > 1:
+        lineas = [
+            "Encontr\u00e9 varios productos. Ind\u00edcame uno "
+            "m\u00e1s espec\u00edficamente:"
+        ]
+
+        for producto in productos[:6]:
+            lineas.append(
+                f"- {producto.nombre} ({producto.codigo}) \u00b7 "
+                f"{formato_moneda(producto.precio)}"
+            )
+
+        return _resultado(
+            "\n".join(lineas),
+            "producto_ambiguo_cliente",
+            usuario,
+        )
+
+    return _resultado(
+        _detalle_producto_cliente(productos[0]),
+        "producto_cliente",
+        usuario,
+    )
+
+
+def _ayuda_cliente(usuario):
+    return _resultado(
+        "\n".join(
+            [
+                (
+                    "Soy Anah\u00edBot, el asistente del cat\u00e1logo "
+                    "de Muebler\u00eda Anah\u00ed."
+                ),
+                "Puedo ayudarte con:",
+                "- Buscar muebles por nombre o c\u00f3digo.",
+                "- Consultar precios.",
+                "- Consultar disponibilidad de productos.",
+                "- Mostrar productos disponibles o agotados.",
+                "- Orientarte sobre los productos del cat\u00e1logo.",
+                "",
+                (
+                    "Las consultas de ventas, ingresos, compras, "
+                    "proveedores e inventario interno requieren "
+                    "permisos de administraci\u00f3n."
+                ),
+            ]
+        ),
+        "ayuda_cliente",
+        usuario,
+    )
+
+
+def _responder_cliente(texto, usuario):
+    if not texto:
+        return _ayuda_cliente(usuario)
+
+    if _es_saludo(texto):
+        return _resultado(
+            (
+                "\u00a1Hola! Soy Anah\u00edBot. Puedo ayudarte a buscar "
+                "muebles, consultar precios y revisar disponibilidad. "
+                "\u00bfQu\u00e9 producto est\u00e1s buscando?"
+            ),
+            "saludo_cliente",
+            usuario,
+        )
+
+    if _es_ayuda(texto):
+        return _ayuda_cliente(usuario)
+
+    # Informaci?n administrativa protegida.
+    if "proveedor" in texto:
+        return _sin_permiso(
+            "proveedores y compras",
+            usuario,
+        )
+
+    if _es_ventas(texto):
+        return _sin_permiso(
+            "ventas, ingresos y reportes",
+            usuario,
+        )
+
+    if any(
+        termino in texto
+        for termino in (
+            "compra",
+            "material",
+            "inventario",
+            "stock bajo",
+            "reponer",
+            "reposicion",
+            "reporte",
+            "facturacion",
+            "factura",
+            "caja",
+        )
+    ):
+        return _sin_permiso(
+            "informaci\u00f3n interna de inventario y compras",
+            usuario,
+        )
+
+    if "agotad" in texto:
+        return _lista_productos_cliente(
+            usuario,
+            disponibles=False,
+        )
+
+    if (
+        "disponible" in texto
+        and (
+            "producto" in texto
+            or "catalogo" in texto
+            or "mueble" in texto
+        )
+    ):
+        return _lista_productos_cliente(
+            usuario,
+            disponibles=True,
+        )
+
+    if _es_recomendacion(texto):
+        return _lista_productos_cliente(
+            usuario,
+            disponibles=True,
+        )
+
+    if (
+        ("producto" in texto or "catalogo" in texto)
+        and not _terminos(texto)
+    ):
+        return _lista_productos_cliente(usuario)
+
+    if _terminos(texto) or re.search(
+        r"\b([a-z]{2,6}-?\d{2,6})\b",
+        texto,
+    ):
+        return _respuesta_producto_cliente(
+            texto,
+            usuario,
+        )
+
+    if "stock" in texto:
+        return _resultado(
+            (
+                "Ind\u00edcame el nombre o c\u00f3digo del producto "
+                "y te dir\u00e9 si est\u00e1 disponible."
+            ),
+            "stock_cliente",
+            usuario,
+        )
+
+    return _ayuda_cliente(usuario)
+
+
+
 def responder_mensaje(mensaje, usuario=None):
     """Devuelve la respuesta de AnahíBot para un mensaje del usuario."""
 
     texto = normalizar(mensaje)
+
+    if usuario is not None and not getattr(usuario, "is_staff", False):
+        return _responder_cliente(texto, usuario)
 
     if not texto:
         return _respuesta_ayuda(usuario)

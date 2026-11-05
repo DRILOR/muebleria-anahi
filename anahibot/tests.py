@@ -375,12 +375,22 @@ class AnahiBotServiceTests(AnahiBotBaseTestCase):
 
     def test_recomendaciones_usuario_sin_ventas(self):
         respuesta = self.preguntar(
-            "¿Qué me recomiendas reponer?",
+            "\u00bfQu\u00e9 me recomiendas reponer?",
             self.usuario,
         )
 
-        self.assertIn("Mesa de comedor", respuesta["respuesta"])
-        self.assertNotIn("Priorizar ventas", respuesta["respuesta"])
+        self.assertEqual(
+            respuesta["intencion"],
+            "permiso_denegado",
+        )
+        self.assertIn(
+            "permisos de administraci\u00f3n",
+            respuesta["respuesta"],
+        )
+        self.assertNotIn(
+            "Priorizar ventas",
+            respuesta["respuesta"],
+        )
 
     def test_no_entendido(self):
         respuesta = self.preguntar("gracias")

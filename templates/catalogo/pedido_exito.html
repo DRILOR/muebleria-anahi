@@ -1,1 +1,62 @@
-{% extends 'catalogo/base.html' %}{% block title %}Pedido recibido | Mueblería Anahí{% endblock %}{% block content %}<section class="account confirmation"><span class="success-mark">✓</span><p class="eyebrow">PEDIDO RECIBIDO</p><h1>Gracias por elegirnos</h1><p>Tu pedido <strong>{{ pedido.numero }}</strong> está pendiente de revisión por nuestro equipo.</p><div class="order-summary">{% for linea in pedido.detalles.all %}<div><span>{{ linea.cantidad }} × {{ linea.producto.nombre }}</span><strong>Bs {{ linea.subtotal|floatformat:2 }}</strong></div>{% endfor %}<div class="order-total"><span>Total estimado</span><strong>Bs {{ pedido.total|floatformat:2 }}</strong></div></div><p>El pedido no descuenta existencias y no representa un pago recibido.</p><a class="button button-dark" href="{% url 'catalogo:lista' %}">Volver al catálogo</a></section>{% endblock %}
+{% extends 'catalogo/base.html' %}
+
+{% block title %}Pedido recibido | Mueblería Anahí{% endblock %}
+
+{% block content %}
+<section class="order-success">
+    <div class="success-icon">
+        ✓
+    </div>
+
+    <p class="checkout-kicker">PEDIDO RECIBIDO</p>
+
+    <h1>Gracias por elegir Mueblería Anahí</h1>
+
+    <p class="success-lead">
+        Tu solicitud fue registrada correctamente.
+        Nuestro equipo revisará disponibilidad y datos de entrega.
+    </p>
+
+    <div class="order-number">
+        <span>Número de pedido</span>
+        <strong>{{ pedido.numero }}</strong>
+    </div>
+
+    <div class="success-summary">
+        {% for linea in pedido.detalles.all %}
+            <div class="success-line">
+                <span>
+                    {{ linea.cantidad }} ×
+                    {{ linea.producto.nombre }}
+                </span>
+
+                <strong>
+                    Bs {{ linea.subtotal|floatformat:2 }}
+                </strong>
+            </div>
+        {% endfor %}
+
+        <div class="success-total">
+            <span>Total estimado</span>
+            <strong>
+                Bs {{ pedido.total|floatformat:2 }}
+            </strong>
+        </div>
+    </div>
+
+    <div class="success-notice">
+        <strong>Importante</strong>
+        <p>
+            Este pedido está pendiente de revisión.
+            No representa todavía un pago recibido ni una venta finalizada.
+        </p>
+    </div>
+
+    <a
+        class="button button-dark success-button"
+        href="{% url 'catalogo:lista' %}"
+    >
+        Volver al catálogo
+    </a>
+</section>
+{% endblock %}

@@ -1,4 +1,139 @@
-{% load static %}<!doctype html>
-<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#293d32"><title>{% block title %}Catálogo | Mueblería Anahí{% endblock %}</title><link rel="preconnect" href="/media/"><link rel="stylesheet" href="{% static 'css/catalogo.css' %}"><link rel="stylesheet" href="{% static 'css/storefront-extra.css' %}"><link rel="stylesheet" href="{% static 'css/pedidos-admin.css' %}"></head>
-<body><header class="store-header"><a class="brand" href="{% url 'catalogo:lista' %}"><span class="brand-mark">A</span><span>Mueblería Anahí<small>Muebles hechos para tu hogar</small></span></a><nav><a href="{% url 'catalogo:lista' %}">Inicio</a><a href="{% url 'catalogo:lista' %}#catalogo">Catálogo</a><a href="{% url 'catalogo:lista' %}#categorias">Categorías</a>{% if user.is_staff %}<a href="{% url 'ventas:pedido_lista' %}">Pedidos</a>{% endif %}<a class="cart-link" href="{% url 'catalogo:carrito' %}">Carrito{% if carrito_cantidad %}<span>{{ carrito_cantidad }}</span>{% endif %}</a>{% if user.is_authenticated %}<span class="customer-greeting">Hola, {{ user.first_name|default:user.username }}</span><form class="inline" method="post" action="{% url 'ventas:cliente_logout' %}">{% csrf_token %}<button>Salir</button></form>{% else %}<a class="nav-cta" href="{% url 'ventas:cliente_login' %}">Mi acceso</a>{% endif %}</nav></header>
-{% if messages %}<div class="notices">{% for message in messages %}<p>{{ message }}</p>{% endfor %}</div>{% endif %}<main>{% block content %}{% endblock %}</main><footer>Diseño y calidad para cada espacio · Bolivia</footer></body></html>
+{% load static %}
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#293d32">
+
+    <title>
+        {% block title %}Catálogo | Mueblería Anahí{% endblock %}
+    </title>
+
+    <link rel="preconnect" href="/media/">
+
+    <link rel="stylesheet" href="{% static 'css/catalogo.css' %}">
+    <link rel="stylesheet" href="{% static 'css/storefront-extra.css' %}">
+    <link rel="stylesheet" href="{% static 'css/pedidos-admin.css' %}">
+    <link rel="stylesheet" href="{% static 'css/ui-polish.css' %}">
+    <link rel="stylesheet" href="{% static 'css/catalogo-enhanced.css' %}">
+
+    {% block extra_css %}{% endblock %}
+<link rel="stylesheet" href="{% static 'css/customer-auth.css' %}">
+<link rel="stylesheet" href="{% static 'css/checkout-flow.css' %}">
+</head>
+
+<body>
+
+<header class="store-header">
+    <a class="brand" href="{% url 'catalogo:lista' %}">
+        <span class="brand-mark">A</span>
+
+        <span>
+            Mueblería Anahí
+            <small>Muebles hechos para tu hogar</small>
+        </span>
+    </a>
+
+    <nav>
+        <a href="{% url 'catalogo:lista' %}">
+            Inicio
+        </a>
+
+        <a href="{% url 'catalogo:lista' %}#catalogo">
+            Catálogo
+        </a>
+
+        <a href="{% url 'catalogo:lista' %}#categorias">
+            Categorías
+        </a>
+
+        {% if user.is_authenticated %}
+            {% if not user.is_staff %}
+                <a class="bot-nav-link"
+                   href="{% url 'anahibot:index' %}">
+                    AnahíBot
+                </a>
+            {% endif %}
+        {% endif %}
+
+        {% if user.is_staff %}
+            <a href="{% url 'ventas:pedido_lista' %}">
+                Pedidos
+            </a>
+        {% endif %}
+
+        <a class="cart-link"
+           href="{% url 'catalogo:carrito' %}">
+            Carrito
+            {% if carrito_cantidad %}
+                <span>{{ carrito_cantidad }}</span>
+            {% endif %}
+        </a>
+
+        {% if user.is_authenticated %}
+            <span class="customer-greeting">
+                Hola, {{ user.first_name|default:user.username }}
+            </span>
+
+            <form class="inline"
+                  method="post"
+                  action="{% url 'ventas:cliente_logout' %}">
+                {% csrf_token %}
+                <button>Salir</button>
+            </form>
+        {% else %}
+            <a class="nav-cta"
+               href="{% url 'ventas:cliente_login' %}">
+                Mi acceso
+            </a>
+        {% endif %}
+    </nav>
+</header>
+
+{% if messages %}
+    <div class="notices">
+        {% for message in messages %}
+            <p>{{ message }}</p>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<main>
+    {% block content %}{% endblock %}
+</main>
+
+{% if user.is_authenticated %}
+    {% if not user.is_staff %}
+        <a class="bot-fab"
+           href="{% url 'anahibot:index' %}"
+           aria-label="Abrir AnahíBot">
+            <span class="bot-fab-icon">A</span>
+            <span class="bot-fab-label">AnahíBot</span>
+        </a>
+    {% endif %}
+{% endif %}
+
+<footer>
+    Diseño y calidad para cada espacio · Bolivia
+</footer>
+
+{% block extra_js %}{% endblock %}
+
+{% if user.is_authenticated and not user.is_staff %}
+<a
+    href="{% url 'anahibot:index' %}"
+    class="anahi-bot-floating"
+    aria-label="Abrir AnahíBot"
+    title="Hablar con AnahíBot"
+>
+    <span class="anahi-bot-floating-icon">A</span>
+    <span class="anahi-bot-floating-text">AnahíBot</span>
+</a>
+{% endif %}
+</body>
+</html>
+
+
+
+

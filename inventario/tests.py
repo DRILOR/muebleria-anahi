@@ -526,6 +526,7 @@ class CargarImagenesDemoCommandTests(TestCase):
             existente.imagen.save("foto-propia.png", ContentFile(self.imagen_png()), save=True)
             nombre_original = existente.imagen.name
             original_bytes = existente.imagen.read()
+            existente.imagen.close()
             with patch.object(cargar_imagenes_demo, "PRODUCT_IMAGES", {"PRD-DOR-001": "fuente", "PRD-DOR-002": "fuente"}), patch.object(cargar_imagenes_demo, "IMAGE_SOURCES", {"fuente": ("https://images.unsplash.com/photo-demo", "Autora", "https://unsplash.com/photos/demo")}), patch.object(cargar_imagenes_demo, "urlopen", return_value=BytesIO(self.imagen_png())) as urlopen_mock:
                 call_command("cargar_imagenes_demo")
                 nueva.refresh_from_db()
@@ -535,6 +536,7 @@ class CargarImagenesDemoCommandTests(TestCase):
                     self.assertEqual(optimizada.format, "WEBP")
                 self.assertEqual(existente.imagen.name, nombre_original)
                 self.assertEqual(existente.imagen.read(), original_bytes)
+                existente.imagen.close()
                 self.assertEqual(urlopen_mock.call_count, 1)
 
     def test_simulacion_y_codigos_desconocidos_no_descargan_ni_modifican(self):
